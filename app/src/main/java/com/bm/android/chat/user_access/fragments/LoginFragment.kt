@@ -24,9 +24,11 @@ import com.facebook.login.LoginResult
 import com.facebook.login.widget.LoginButton
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class LoginFragment : Fragment() {
-
+    private val TAG = "mainLog"
     private val mCallback by lazy {
         context as LoginFragmentInterface
     }
@@ -48,7 +50,6 @@ class LoginFragment : Fragment() {
 
 
         val loginButton = v.findViewById<Button>(R.id.login_button)
-        val usernameTextView = v.findViewById<TextView>(R.id.username_input)
         val passwordTextView = v.findViewById<TextView>(R.id.password_input)
 
         auth = FirebaseAuth.getInstance()
@@ -56,17 +57,17 @@ class LoginFragment : Fragment() {
         mFacebookButton.setPermissions(listOf("email", "public_profile"))
         mFacebookButton.registerCallback(mCallbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
-                Log.d("test", "facebook:onSuccess:$loginResult")
+                Log.d(TAG, "facebook:onSuccess:$loginResult")
                 handleFacebookAccessToken(loginResult.accessToken)
             }
 
             override fun onCancel() {
-                Log.d("test", "facebook:onCancel")
+                Log.d(TAG, "facebook:onCancel")
                 // ...
             }
 
             override fun onError(error: FacebookException) {
-                Log.d("test", "facebook:onError", error)
+                Log.d(TAG, "facebook:onError", error)
                 // ...
             }
         })
@@ -91,7 +92,7 @@ class LoginFragment : Fragment() {
                 mCallback.onStartSignupFragment()
             }
         }
-        spannableString.setSpan(clickableSpan, 31, 35,
+        spannableString.setSpan(clickableSpan, 0, 23,
             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         mSignupLink.text = spannableString
         mSignupLink.highlightColor = Color.TRANSPARENT
@@ -99,20 +100,29 @@ class LoginFragment : Fragment() {
     }
 
     private fun handleFacebookAccessToken(token: AccessToken) {
-        Log.d("test", "handleFacebookAccessToken:$token")
+        Log.d(TAG, "handleFacebookAccessToken:$token")
 
         val credential = FacebookAuthProvider.getCredential(token.token)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-                    Log.d("test", "signInWithCredential:success")
+                    Log.d(TAG, "signInWithCredential:success")
                     val user = auth.currentUser
-                    Log.d("test", "current user: ${auth.currentUser!!.uid}")
+                    val isNewUser = task.result!!.additionalUserInfo!!.isNewUser
+
+                    if (isNewUser)  {
+                        Log.d(TAG, "IS NEW USER")
+                        changeDisplayName(user, "")
+                    } else {
+                        Log.d(TAG, "IS NOT NEW USER")
+                    }
+
+                    Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
 //                    updateUI(user)
                 } else {
                     // If sign in fails, display a message to the user.
-                    Log.d("test", "signInWithCredential:failure", task.exception)
+                    Log.d(TAG, "signInWithCredential:failure", task.exception)
                     Toast.makeText(context, "Authentication failed.",
                         Toast.LENGTH_SHORT).show()
 //                    updateUI(null)
@@ -120,7 +130,16 @@ class LoginFragment : Fragment() {
             }
     }
 
+    private fun changeDisplayName(user: FirebaseUser?, newName:String)  {
+        val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(newName)
+                        .build()
 
-
-
+        user?.updateProfile(profileUpdates)
+            ?.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d(TAG, "Changed display name to $newName")
+                }
+          }
     }
+}

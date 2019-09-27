@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.bm.android.chat.R
 
-class SignupFragment : Fragment() {
+class EmailSignupFragment : Fragment() {
 
     interface SignupFragmentInterface  {
         fun onStartSignupSuccessFragment()
