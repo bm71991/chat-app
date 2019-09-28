@@ -53,7 +53,7 @@
                 android:text="@string/signup"/>
     </LinearLayout>
     <ProgressBar
-            android:id="@+id/auth_progress_bar"
+            android:id="@+id/signup_progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"

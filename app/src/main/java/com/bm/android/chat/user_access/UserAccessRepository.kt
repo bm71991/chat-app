@@ -22,6 +22,12 @@ class UserAccessRepository {
         return auth.createUserWithEmailAndPassword(email, password)
     }
 
+    fun signInWithEmail(email:String, password: String, auth: FirebaseAuth): Task<AuthResult>   {
+        Log.i(TAG, email)
+        return auth.signInWithEmailAndPassword(email, password)
+    }
+
+
     /*Checks to determine whether a document already exists with the username requested by a
     prospective user. If it does not, a document will be created whose key is the new
     username. These steps are done atomically due to being run in a transaction.

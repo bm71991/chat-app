@@ -11,11 +11,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.bm.android.chat.R
+import com.bm.android.chat.user_access.UserAccessViewModel
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -41,19 +42,29 @@ class LoginFragment : Fragment() {
 
     private lateinit var mSignupLink:TextView
     private lateinit var mFacebookButton: LoginButton
+    private lateinit var mLoginLinearLayout: LinearLayout
+    private lateinit var mProgressBar: ProgressBar
     private val mCallbackManager = CallbackManager.Factory.create()
     private lateinit var auth: FirebaseAuth
 
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.fragment_login, container, false)
-
-
-        val loginButton = v.findViewById<Button>(R.id.login_button)
-        val passwordTextView = v.findViewById<TextView>(R.id.password_input)
 
         auth = FirebaseAuth.getInstance()
+        val mViewModel = ViewModelProviders.of(activity!!).get(UserAccessViewModel::class.java)
+        val emailLoginStatus = mViewModel.getEmailLoginStatus()
+
+        val v = inflater.inflate(R.layout.fragment_login, container, false)
+
+        val emailLoginButton = v.findViewById<Button>(R.id.email_login_button)
+        val emailInputTextView = v.findViewById<EditText>(R.id.email_input)
+        val passwordTextView = v.findViewById<TextView>(R.id.password_input)
+        mLoginLinearLayout = v.findViewById(R.id.login_layout)
+        mProgressBar = v.findViewById(R.id.login_progress_bar)
+
+        mSignupLink = v.findViewById(R.id.go_to_signup)
+        setLinkOnTextView()
+
         mFacebookButton = v.findViewById(R.id.fb_login_button)
         mFacebookButton.setPermissions(listOf("email", "public_profile"))
         mFacebookButton.registerCallback(mCallbackManager, object : FacebookCallback<LoginResult> {
@@ -73,8 +84,26 @@ class LoginFragment : Fragment() {
             }
         })
 
-        mSignupLink = v.findViewById(R.id.go_to_signup)
-        setLinkOnTextView()
+        emailLoginButton.setOnClickListener {
+            val emailInput = emailInputTextView.text.toString()
+            val password = passwordTextView.text.toString()
+
+            showProgressBar()
+            mViewModel.loginWithEmail(emailInput, password)
+        }
+
+        emailLoginStatus.observe(this, Observer {
+            if (it == mViewModel.EMAIL_LOGIN_SUCCESS)   {
+                if (mViewModel.accountLacksUsername())  {
+                    mCallback.onStartUsernameFragment()
+                } else {
+                    mCallback.onStartConvoFragment()
+                }
+            } else {
+                Toast.makeText(context, it.toString(), Toast.LENGTH_LONG).show()
+            }
+            hideProgressBar()
+        })
 
         return v
     }
@@ -121,8 +150,6 @@ class LoginFragment : Fragment() {
                         //If the user logged in before but has not set their username:
                         if (user!!.displayName == "")   {
                             Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
-
-
                             mCallback.onStartUsernameFragment()
                         } else {
                             mCallback.onStartConvoFragment()
@@ -151,5 +178,15 @@ class LoginFragment : Fragment() {
                     mCallback.onStartUsernameFragment()
                 }
           }
+    }
+
+    private fun showProgressBar()   {
+        mProgressBar.visibility = View.VISIBLE
+        mLoginLinearLayout.visibility = View.GONE
+    }
+
+    private fun hideProgressBar()   {
+        mProgressBar.visibility = View.GONE
+        mLoginLinearLayout.visibility = View.VISIBLE
     }
 }
