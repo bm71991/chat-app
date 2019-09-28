@@ -5,16 +5,19 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/logged_in_text"
-        android:text=""/>
+        android:layout_marginTop="45dp"
+        android:layout_gravity="center"
+        android:textSize="20sp"
+        android:text="@string/username_registered"
+        android:layout_marginBottom="10dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/username_registered_body"/>
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/delete_button"
-        android:text="delete user"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/logout_button"
-        android:text="log out"/>
+        android:text="@string/to_convos"
+        android:id="@+id/to_convos_btn"
+        android:layout_gravity="center"/>
 </LinearLayout>

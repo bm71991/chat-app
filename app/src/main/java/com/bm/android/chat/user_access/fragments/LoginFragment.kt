@@ -35,7 +35,8 @@ class LoginFragment : Fragment() {
 
     interface LoginFragmentInterface  {
         fun onStartSignupFragment()
-//        fun onStartLoginSuccessFragment()
+        fun onStartUsernameFragment()
+        fun onStartConvoFragment()
     }
 
     private lateinit var mSignupLink:TextView
@@ -111,15 +112,23 @@ class LoginFragment : Fragment() {
                     val user = auth.currentUser
                     val isNewUser = task.result!!.additionalUserInfo!!.isNewUser
 
+                    //if this is a new user: clear display name and send them to UsernameFragment
                     if (isNewUser)  {
                         Log.d(TAG, "IS NEW USER")
                         changeDisplayName(user, "")
                     } else {
                         Log.d(TAG, "IS NOT NEW USER")
+                        //If the user logged in before but has not set their username:
+                        if (user!!.displayName == "")   {
+                            Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
+
+
+                            mCallback.onStartUsernameFragment()
+                        } else {
+                            mCallback.onStartConvoFragment()
+                        }
                     }
 
-                    Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
-//                    updateUI(user)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.d(TAG, "signInWithCredential:failure", task.exception)
@@ -139,6 +148,7 @@ class LoginFragment : Fragment() {
             ?.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d(TAG, "Changed display name to $newName")
+                    mCallback.onStartUsernameFragment()
                 }
           }
     }

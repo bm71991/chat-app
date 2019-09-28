@@ -6,17 +6,16 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.bm.android.chat.user_access.StartFragment
-import com.bm.android.chat.user_access.fragments.LoginFragment
-import com.bm.android.chat.user_access.fragments.EmailSignupFragment
-import com.bm.android.chat.user_access.fragments.EmailSignupSuccessFragment
-import com.bm.android.chat.user_access.fragments.UsernameFragment
+import com.bm.android.chat.user_access.ConvoFragment
+import com.bm.android.chat.user_access.fragments.*
 import com.google.firebase.auth.FirebaseAuth
 
 
 class ChatActivity : AppCompatActivity(),
                      LoginFragment.LoginFragmentInterface,
-                     EmailSignupFragment.SignupFragmentInterface {
+                     EmailSignupFragment.SignupFragmentInterface,
+                     UsernameFragment.UsernameFragmentInterface,
+                     UsernameRegisteredFragment.UsernameRegisteredFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -27,20 +26,13 @@ class ChatActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.fragment_container)
-//        val fragment = fm.findFragmentById(R.id.fragment_container)
-//
-//
-//        if (fragment == null)   {
-//            addFirstFragment(LoginFragment())
-//        }
-
 
         if (currentUser != null)  {
-            Log.i(TAG, "display name = ${currentUser.displayName}")
+            Log.i(TAG, "display name ChatActivity onCreate = ${currentUser.displayName}")
             if (currentUser.displayName == "")    {
                 addFirstFragment(UsernameFragment())
             } else {
-                addFirstFragment(StartFragment())
+                addFirstFragment(ConvoFragment())
             }
         } else {
             addFirstFragment(LoginFragment())
@@ -50,6 +42,12 @@ class ChatActivity : AppCompatActivity(),
     private fun addFirstFragment(fragment: Fragment) {
         fm.beginTransaction()
             .add(R.id.fragment_container, fragment, FIRST_FRAGMENT)
+            .commit()
+    }
+
+    private fun replaceFragment(fragment: Fragment) {
+        fm.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
             .commit()
     }
 
@@ -66,11 +64,27 @@ class ChatActivity : AppCompatActivity(),
         replaceFragmentAddToStack(EmailSignupFragment())
     }
 
+    override fun onStartUsernameFragment() {
+        replaceFragment(UsernameFragment())
+    }
+
+    /* Used in UsernameFragment */
+    override fun onStartUsernameRegisteredFragment() {
+        replaceFragment(UsernameRegisteredFragment())
+    }
+
+    override fun onStartConvoFragment() {
+        replaceFragment(ConvoFragment())
+    }
+
+
+    /*Not used yet*/
     override fun onStartSignupSuccessFragment() {
         /* pop/reverse onStartSignupFragment() transaction */
         fm.popBackStack()
         replaceFragmentAddToStack(EmailSignupSuccessFragment())
     }
+
 
 
 

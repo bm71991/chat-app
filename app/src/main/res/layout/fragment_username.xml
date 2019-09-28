@@ -2,19 +2,45 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Username Fragment"/>
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/username_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="45dp"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:text="@string/username_registration"
+            android:layout_marginBottom="10dp"/>
 
-    <EditText
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:text="@string/username_text"/>
+
+        <EditText
+            android:id="@+id/username_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/new_username" />
+        <Button
+            android:id="@+id/register_username_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/register_username_btn"/>
+    </LinearLayout>
+    <ProgressBar
+        android:id="@+id/username_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="new username"
-        android:id="@+id/new_username"/>
-    <Button
-        android:id="@+id/change_username_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="change username"/>
+        android:visibility="gone"
+        android:layout_gravity="center"/>
 </LinearLayout>
