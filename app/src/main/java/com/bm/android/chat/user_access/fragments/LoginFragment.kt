@@ -23,13 +23,14 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.facebook.login.widget.LoginButton
-import com.google.firebase.auth.FacebookAuthProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.*
+import com.twitter.sdk.android.core.*
+import com.twitter.sdk.android.core.identity.TwitterLoginButton
 
 class LoginFragment : Fragment() {
     private val TAG = "mainLog"
+    val FACEBOOK_REQUEST_CODE = 64206
+    val TWITTER_REQUEST_CODE = 140
     private val mCallback by lazy {
         context as LoginFragmentInterface
     }
@@ -46,6 +47,8 @@ class LoginFragment : Fragment() {
     private lateinit var mProgressBar: ProgressBar
     private val mCallbackManager = CallbackManager.Factory.create()
     private lateinit var auth: FirebaseAuth
+    private lateinit var mTwitterLoginButton: TwitterLoginButton
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -61,6 +64,31 @@ class LoginFragment : Fragment() {
         val passwordTextView = v.findViewById<TextView>(R.id.password_input)
         mLoginLinearLayout = v.findViewById(R.id.login_layout)
         mProgressBar = v.findViewById(R.id.login_progress_bar)
+        mTwitterLoginButton = v.findViewById(R.id.twitter_login_button)
+
+        mTwitterLoginButton.callback = object: Callback<TwitterSession>()   {
+            override fun success(result: Result<TwitterSession>?) {
+                showProgressBar()
+                val session = result!!.data
+                val credential = TwitterAuthProvider.getCredential(session.authToken.token,
+                session.authToken.secret)
+                val auth = FirebaseAuth.getInstance()
+                auth.signInWithCredential(credential)
+                    .addOnSuccessListener {
+                        Log.d(TAG, "signed in via twitter: ${auth.uid}, displayName == " +
+                                "${auth.currentUser!!.displayName}")
+                        val isNewUser = it.additionalUserInfo!!.isNewUser
+                        handleUsernameFlow(isNewUser)
+                    }
+                    .addOnFailureListener   {
+                        Log.d(TAG, "sign in fail to Twitter: $it")
+                    }
+            }
+
+            override fun failure(exception: TwitterException?) {
+                Log.d(TAG, exception.toString())
+            }
+        }
 
         mSignupLink = v.findViewById(R.id.go_to_signup)
         setLinkOnTextView()
@@ -117,8 +145,15 @@ class LoginFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        // Pass the activity result back to the Facebook SDK
-        mCallbackManager.onActivityResult(requestCode, resultCode, data)
+        when (requestCode)  {
+            FACEBOOK_REQUEST_CODE -> {
+                // Pass the activity result back to the Facebook SDK
+                mCallbackManager.onActivityResult(requestCode, resultCode, data)
+            }
+            TWITTER_REQUEST_CODE -> {
+                mTwitterLoginButton.onActivityResult(requestCode, resultCode, data)
+            }
+        }
     }
 
     private fun setLinkOnTextView() {
@@ -144,24 +179,8 @@ class LoginFragment : Fragment() {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "signInWithCredential:success")
-                    val user = auth.currentUser
                     val isNewUser = task.result!!.additionalUserInfo!!.isNewUser
-
-                    //if this is a new user: clear display name and send them to UsernameFragment
-                    if (isNewUser)  {
-
-                        Log.d(TAG, "IS NEW USER")
-                        changeDisplayName(user, "")
-                    } else {
-                        Log.d(TAG, "IS NOT NEW USER")
-                        //If the user logged in before but has not set their username:
-                        if (user!!.displayName == "")   {
-                            Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
-                            mCallback.onStartUsernameFragment()
-                        } else {
-                            mCallback.onStartConvoFragment()
-                        }
-                    }
+                    handleUsernameFlow(isNewUser)
 
                 } else {
                     // If sign in fails, display a message to the user.
@@ -195,5 +214,25 @@ class LoginFragment : Fragment() {
     private fun hideProgressBar()   {
         mProgressBar.visibility = View.GONE
         mLoginLinearLayout.visibility = View.VISIBLE
+    }
+
+    private fun handleUsernameFlow(isNewUser:Boolean)   {
+        val user = auth.currentUser
+        //if this is a new user: clear display name and send them to UsernameFragment
+        if (isNewUser)  {
+
+            Log.d(TAG, "IS NEW USER")
+            changeDisplayName(user, "")
+        }
+        else {
+            Log.d(TAG, "IS NOT NEW USER")
+            //If the user logged in before but has not set their username:
+            if (user!!.displayName == "")   {
+                Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
+                mCallback.onStartUsernameFragment()
+            } else {
+                mCallback.onStartConvoFragment()
+            }
+        }
     }
 }

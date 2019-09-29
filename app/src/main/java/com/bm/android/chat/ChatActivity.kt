@@ -9,6 +9,9 @@ import androidx.fragment.app.FragmentManager
 import com.bm.android.chat.user_access.ConvoFragment
 import com.bm.android.chat.user_access.fragments.*
 import com.google.firebase.auth.FirebaseAuth
+import com.twitter.sdk.android.core.Twitter
+import com.twitter.sdk.android.core.TwitterAuthConfig
+import com.twitter.sdk.android.core.TwitterConfig
 
 
 class ChatActivity : AppCompatActivity(),
@@ -23,10 +26,12 @@ class ChatActivity : AppCompatActivity(),
     }
     private val FIRST_FRAGMENT = "loginFragment"
     private val currentUser = FirebaseAuth.getInstance().currentUser
+    private lateinit var mTwitterAuthConfig: TwitterAuthConfig
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initializeTwitter()
         setContentView(R.layout.fragment_container)
 
         if (currentUser != null)  {
@@ -113,9 +118,20 @@ class ChatActivity : AppCompatActivity(),
 
     /*Used to pass result of [Fragment].startActivityResult to [Fragment].onActivityResult */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        Log.d("test", "requestCode == $requestCode")
         super.onActivityResult(requestCode, resultCode, data)
         for (fragment in supportFragmentManager.fragments) {
             fragment.onActivityResult(requestCode, resultCode, data)
         }
+    }
+
+    private fun initializeTwitter()  {
+        mTwitterAuthConfig = TwitterAuthConfig(getString(R.string.twitter_consumer_key),
+            getString(R.string.twitter_consumer_secret))
+
+        val twitterConfig = TwitterConfig.Builder(this)
+            .twitterAuthConfig(mTwitterAuthConfig)
+            .build()
+        Twitter.initialize(twitterConfig)
     }
 }

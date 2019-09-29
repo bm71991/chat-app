@@ -65,13 +65,13 @@ class UserAccessViewModel: ViewModel() {
     fun signupUser(email:String, password:String)  {
         mAccessRepository.registerFirebaseUser(email, password, mAuth)
             .addOnSuccessListener {
-                Log.i(TAG, "signupUser successful for email:${mAuth.currentUser}")
+                Log.d(TAG, "signupUser successful for email:${mAuth.currentUser}")
                 mAuth.currentUser?.sendEmailVerification()
                 mAuth.signOut()
                 emailSignupStatus.value = EMAIL_REGISTERED
             }
             .addOnFailureListener {
-                Log.i(TAG, "signupUser failed Listener current user = ${mAuth.currentUser}")
+                Log.d(TAG, "signupUser failed Listener current user = ${mAuth.currentUser}")
                 emailSignupStatus.value = it.message.toString()
             }
     }
