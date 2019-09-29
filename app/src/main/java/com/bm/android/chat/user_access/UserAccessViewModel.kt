@@ -25,15 +25,15 @@ class UserAccessViewModel: ViewModel() {
     fun getEmailLoginStatus(): LiveData<String> = emailLoginStatus
 
     fun clearEmailLoginStatus() {
-        emailLoginStatus = MutableLiveData()
+        emailLoginStatus.value = null
     }
 
     fun clearEmailSignupStatus()    {
-        emailSignupStatus = MutableLiveData()
+        emailSignupStatus.value = null
     }
 
     fun clearNameRegisterStatus()   {
-        nameRegisterStatus = MutableLiveData()
+        nameRegisterStatus.value = null
     }
 
 

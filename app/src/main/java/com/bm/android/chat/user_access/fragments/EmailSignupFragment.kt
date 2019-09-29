@@ -1,6 +1,7 @@
 package com.bm.android.chat.user_access.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ class EmailSignupFragment : Fragment() {
 
     private lateinit var mSignupLayout: LinearLayout
     private lateinit var mProgressBar: ProgressBar
+    private val TAG = "mainLog"
 
     interface EmailSignupFragmentInterface  {
         fun onStartSignupSuccessFragment()
@@ -45,12 +47,17 @@ class EmailSignupFragment : Fragment() {
         }
 
         signupStatus.observe(this, Observer {
-            if (it == mViewModel.EMAIL_REGISTERED)  {
-                mCallback.onStartSignupSuccessFragment()
-            } else {
-                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            val result = it
+            Log.d(TAG, "result = $result")
+            if (result != null) {
+                mViewModel.clearEmailSignupStatus()
+                if (result == mViewModel.EMAIL_REGISTERED)  {
+                    mCallback.onStartSignupSuccessFragment()
+                } else {
+                    Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show()
+                }
+                hideProgressBar()
             }
-            hideProgressBar()
         })
 
         return v

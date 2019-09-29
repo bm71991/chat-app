@@ -47,12 +47,17 @@ class UsernameFragment : Fragment() {
         }
 
         mUsernameRegisterStatus.observe(this, Observer {
-            if (it == mViewModel.USERNAME_REGISTERED)   {
-                mCallback.onStartUsernameRegisteredFragment()
-            } else {
-                Toast.makeText(context, it.toString(), Toast.LENGTH_LONG).show()
+            val result = it
+            Log.d(TAG, "result = $result")
+            if (result != null) {
+                mViewModel.clearNameRegisterStatus()
+                if (result == mViewModel.USERNAME_REGISTERED)   {
+                    mCallback.onStartUsernameRegisteredFragment()
+                } else {
+                    Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show()
+                }
+                hideProgressBar()
             }
-            hideProgressBar()
         })
 
         return v

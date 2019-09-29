@@ -70,6 +70,7 @@ class LoginFragment : Fragment() {
         mFacebookButton.registerCallback(mCallbackManager, object : FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
                 Log.d(TAG, "facebook:onSuccess:$loginResult")
+                showProgressBar()
                 handleFacebookAccessToken(loginResult.accessToken)
             }
 
@@ -93,16 +94,21 @@ class LoginFragment : Fragment() {
         }
 
         emailLoginStatus.observe(this, Observer {
-            if (it == mViewModel.EMAIL_LOGIN_SUCCESS)   {
-                if (mViewModel.accountLacksUsername())  {
-                    mCallback.onStartUsernameFragment()
+            val result = it
+            Log.d(TAG, "result = $result")
+            if (result != null) {
+                mViewModel.clearEmailLoginStatus()
+                if (result == mViewModel.EMAIL_LOGIN_SUCCESS)   {
+                    if (mViewModel.accountLacksUsername())  {
+                        mCallback.onStartUsernameFragment()
+                    } else {
+                        mCallback.onStartConvoFragment()
+                    }
                 } else {
-                    mCallback.onStartConvoFragment()
+                    Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show()
                 }
-            } else {
-                Toast.makeText(context, it.toString(), Toast.LENGTH_LONG).show()
+                hideProgressBar()
             }
-            hideProgressBar()
         })
 
         return v
@@ -143,6 +149,7 @@ class LoginFragment : Fragment() {
 
                     //if this is a new user: clear display name and send them to UsernameFragment
                     if (isNewUser)  {
+
                         Log.d(TAG, "IS NEW USER")
                         changeDisplayName(user, "")
                     } else {

@@ -6,9 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.ViewModelProviders
 import com.bm.android.chat.user_access.ConvoFragment
-import com.bm.android.chat.user_access.UserAccessViewModel
 import com.bm.android.chat.user_access.fragments.*
 import com.google.firebase.auth.FirebaseAuth
 
@@ -25,12 +23,10 @@ class ChatActivity : AppCompatActivity(),
     }
     private val FIRST_FRAGMENT = "loginFragment"
     private val currentUser = FirebaseAuth.getInstance().currentUser
-    private lateinit var userAccessVm: UserAccessViewModel
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        userAccessVm = ViewModelProviders.of(this).get(UserAccessViewModel::class.java)
         setContentView(R.layout.fragment_container)
 
         if (currentUser != null)  {
@@ -71,6 +67,10 @@ class ChatActivity : AppCompatActivity(),
     }
 
     override fun onStartUsernameFragment() {
+        /*Should not be able to hit back button to go back to Login - signed in at this point */
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        }
         replaceFragment(UsernameFragment())
     }
 
@@ -80,10 +80,14 @@ class ChatActivity : AppCompatActivity(),
     }
 
     override fun onStartConvoFragment() {
+        /*Should not be able to hit back button and go back to login/signin flow */
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        }
         replaceFragment(ConvoFragment())
     }
 
-    /*Not used yet*/
+    /*Used in EmailSignupFragment*/
     override fun onStartSignupSuccessFragment() {
         /* pop/reverse onStartSignupFragment() transaction */
         fm.popBackStack()
