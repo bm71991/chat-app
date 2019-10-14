@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.bm.android.chat.user_access.ConvoFragment
+import com.bm.android.chat.chat_messaging.StartFragment
+import com.bm.android.chat.conversations.ConvosPagerFragment
+import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.user_access.fragments.*
 import com.google.firebase.auth.FirebaseAuth
 import com.twitter.sdk.android.core.Twitter
@@ -39,7 +41,7 @@ class ChatActivity : AppCompatActivity(),
             if (currentUser.displayName.isNullOrEmpty())    {
                 addFirstFragment(UsernameFragment())
             } else {
-                addFirstFragment(ConvoFragment())
+                addFirstFragment(RequestsPagerFragment())
             }
         } else {
             addFirstFragment(LoginFragment())
@@ -89,7 +91,7 @@ class ChatActivity : AppCompatActivity(),
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         }
-        replaceFragment(ConvoFragment())
+        replaceFragment(StartFragment())
     }
 
     /*Used in EmailSignupFragment*/
