@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 
 import com.bm.android.chat.R
+import com.bm.android.chat.conversations.ConvosPagerFragment
 import com.google.android.material.tabs.TabLayout
 
 class RequestsPagerFragment : Fragment() {

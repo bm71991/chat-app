@@ -14,7 +14,7 @@ class UsernameRegisteredFragment : Fragment() {
     }
 
     interface UsernameRegisteredFragmentInterface   {
-        fun onStartConvoFragment()
+        fun onStartConvosPagerFragment()
     }
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -23,7 +23,7 @@ class UsernameRegisteredFragment : Fragment() {
         val toConvosButton = v.findViewById<Button>(R.id.to_convos_btn)
 
         toConvosButton.setOnClickListener {
-            mCallback.onStartConvoFragment()
+            mCallback.onStartConvosPagerFragment()
         }
         return v
     }

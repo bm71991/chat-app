@@ -1,6 +1,7 @@
 package com.bm.android.chat.conversations
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +17,7 @@ class FriendsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+        Log.i("mainLog", "onCreateView of FriendsFragment called")
         return inflater.inflate(
             R.layout.fragment_friends,
             container, false

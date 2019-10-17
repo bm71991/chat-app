@@ -4,44 +4,57 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.bm.android.chat.chat_messaging.StartFragment
 import com.bm.android.chat.conversations.ConvosPagerFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
+import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.twitter.sdk.android.core.Twitter
 import com.twitter.sdk.android.core.TwitterAuthConfig
 import com.twitter.sdk.android.core.TwitterConfig
+import kotlinx.android.synthetic.main.fragment_container.*
 
 
 class ChatActivity : AppCompatActivity(),
+                     NavigationView.OnNavigationItemSelectedListener,
                      LoginFragment.LoginFragmentInterface,
                      EmailSignupFragment.EmailSignupFragmentInterface,
                      UsernameFragment.UsernameFragmentInterface,
                      UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
-                     EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface {
+                     EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
+                     ConvosPagerFragment.ConvosPagerFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
     }
     private val FIRST_FRAGMENT = "loginFragment"
-    private val currentUser = FirebaseAuth.getInstance().currentUser
     private lateinit var mTwitterAuthConfig: TwitterAuthConfig
-
+    private val mAuth = FirebaseAuth.getInstance()
+    private val toggle by lazy {
+        ActionBarDrawerToggle(this, drawer_layout,toolbar,
+            R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initializeTwitter()
         setContentView(R.layout.fragment_container)
+        configureNavigationView()
+        val currentUser = mAuth.currentUser
 
         if (currentUser != null)  {
             Log.i(TAG, "display name ChatActivity onCreate = ${currentUser.displayName}")
             if (currentUser.displayName.isNullOrEmpty())    {
                 addFirstFragment(UsernameFragment())
             } else {
-                addFirstFragment(RequestsPagerFragment())
+                addFirstFragment(ConvosPagerFragment())
             }
         } else {
             addFirstFragment(LoginFragment())
@@ -67,8 +80,12 @@ class ChatActivity : AppCompatActivity(),
             .commit()
     }
 
-    /* CALLBACKS */
-    /* used in LoginFragment */
+    /*************************************************************
+     * Navigation methods used in fragments. Abstracts the
+     * fragment manager transactions from the fragments themselves
+     */
+
+    /*Used in LoginFragment*/
     override fun onStartSignupFragment()    {
         replaceFragmentAddToStack(EmailSignupFragment())
     }
@@ -81,17 +98,21 @@ class ChatActivity : AppCompatActivity(),
         replaceFragment(UsernameFragment())
     }
 
-    /* Used in UsernameFragment */
-    override fun onStartUsernameRegisteredFragment() {
-        replaceFragment(UsernameRegisteredFragment())
+    override fun disableNavDrawer() {
+        enableNavDrawer(false)
     }
 
-    override fun onStartConvoFragment() {
+    override fun onStartConvosPagerFragment() {
         /*Should not be able to hit back button and go back to login/signin flow */
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         }
-        replaceFragment(StartFragment())
+        replaceFragment(ConvosPagerFragment())
+    }
+
+    /* Used in UsernameFragment */
+    override fun onStartUsernameRegisteredFragment() {
+        replaceFragment(UsernameRegisteredFragment())
     }
 
     /*Used in EmailSignupFragment*/
@@ -102,15 +123,36 @@ class ChatActivity : AppCompatActivity(),
         replaceFragmentAddToStack(EmailSignupSuccessFragment())
     }
 
+    /*On navigating from EmailSignupSuccessFragment to LoginFragment*/
     override fun emailSuccessToLogin() {
         /*reverses replaceFragmentAddToStack(EmailSignupSuccessFragment())*/
         fm.popBackStack()
     }
 
-    /* Override back button event: pop fragment transaction stack if it is not empty, else
-       finish the activity.
-     */
+    /*Used in ConvosPagerFragment*/
+    override fun showNavDrawer()    {
+        enableNavDrawer(true)
+    }
+
+    private fun onStartLoginFragment()  {
+        replaceFragment(LoginFragment())
+    }
+
+    /*Used in Navigation Drawer*/
+    private fun onStartRequestsPagerFragment()    {
+        replaceFragment(RequestsPagerFragment())
+    }
+
+    private fun onStartFriendSearchFragment()    {
+        replaceFragment(FriendSearchFragment())
+    }
+
     override fun onBackPressed() {
+        closeNavDrawer()
+        /*******************************************************
+         * pop fragment transaction stack if it is not empty, else
+         * finish the activity.
+        */
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         } else {
@@ -127,6 +169,9 @@ class ChatActivity : AppCompatActivity(),
         }
     }
 
+    /****************************************************************************
+     * Required for Firebase login via Twitter
+     */
     private fun initializeTwitter()  {
         mTwitterAuthConfig = TwitterAuthConfig(getString(R.string.twitter_consumer_key),
             getString(R.string.twitter_consumer_secret))
@@ -135,5 +180,46 @@ class ChatActivity : AppCompatActivity(),
             .twitterAuthConfig(mTwitterAuthConfig)
             .build()
         Twitter.initialize(twitterConfig)
+    }
+
+    /***************************************************************************
+     * NavigationView Settings
+     */
+    private fun configureNavigationView()   {
+        setSupportActionBar(toolbar)
+        nav_view.setNavigationItemSelectedListener(this)
+        drawer_layout.addDrawerListener(toggle)
+        toggle.syncState()
+        Log.d(TAG, "nav drawer disabled")
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        closeNavDrawer()
+        when (item.itemId)  {
+            R.id.friend_search -> onStartFriendSearchFragment()
+            R.id.friend_requests -> onStartRequestsPagerFragment()
+            R.id.conversations -> onStartConvosPagerFragment()
+            R.id.log_out -> {
+                mAuth.signOut()
+                onStartLoginFragment()
+            }
+        }
+        return true
+    }
+
+    /*****************************************************************************
+     * Disables or enables the NavDrawer
+     */
+    private fun enableNavDrawer(enabled:Boolean)   {
+        val mode = if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED
+            else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+        drawer_layout.setDrawerLockMode(mode)
+        toggle.setDrawerIndicatorEnabled(enabled)
+    }
+
+    private fun closeNavDrawer()    {
+        if (drawer_layout.isDrawerOpen(GravityCompat.START))   {
+            drawer_layout.closeDrawer(GravityCompat.START)
+        }
     }
 }

@@ -38,7 +38,8 @@ class LoginFragment : Fragment() {
     interface LoginFragmentInterface  {
         fun onStartSignupFragment()
         fun onStartUsernameFragment()
-        fun onStartConvoFragment()
+        fun onStartConvosPagerFragment()
+        fun disableNavDrawer()
     }
 
     private lateinit var mSignupLink:TextView
@@ -52,13 +53,13 @@ class LoginFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+        mCallback.disableNavDrawer()
 
         auth = FirebaseAuth.getInstance()
         val mViewModel = ViewModelProviders.of(activity!!).get(UserAccessViewModel::class.java)
         val emailLoginStatus = mViewModel.getEmailLoginStatus()
 
         val v = inflater.inflate(R.layout.fragment_login, container, false)
-
         val emailLoginButton = v.findViewById<Button>(R.id.email_login_button)
         val emailInputTextView = v.findViewById<EditText>(R.id.email_input)
         val passwordTextView = v.findViewById<TextView>(R.id.password_input)
@@ -130,7 +131,7 @@ class LoginFragment : Fragment() {
                     if (mViewModel.accountLacksUsername())  {
                         mCallback.onStartUsernameFragment()
                     } else {
-                        mCallback.onStartConvoFragment()
+                        mCallback.onStartConvosPagerFragment()
                     }
                 } else {
                     Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show()
@@ -231,7 +232,7 @@ class LoginFragment : Fragment() {
                 Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
                 mCallback.onStartUsernameFragment()
             } else {
-                mCallback.onStartConvoFragment()
+                mCallback.onStartConvosPagerFragment()
             }
         }
     }
