@@ -1,6 +1,7 @@
 package com.bm.android.chat.user_access
 
 import android.util.Log
+import com.bm.android.chat.user_access.models.FriendInfo
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -13,6 +14,7 @@ import com.google.firebase.firestore.Transaction
 class UserAccessRepository {
     private val db = FirebaseFirestore.getInstance()
     private val USER_COLLECTION = "users"
+    private val FRIENDS_COLLECTION = "friends"
     private val TAG = "mainLog"
 
     /*********************
@@ -34,7 +36,7 @@ class UserAccessRepository {
      */
     fun checkFirestore(username:String, email:String): Task<Transaction> {
         return db.runTransaction { transaction ->
-            val usernameRef = db.collection("users").document(username)
+            val usernameRef = db.collection(USER_COLLECTION).document(username)
             val snapshot = transaction.get(usernameRef)
 
             if (!snapshot.exists()) {
@@ -58,4 +60,15 @@ class UserAccessRepository {
 
     /* Used in checkFirestore to add a user document to collection users */
     class User(var uid:String?, var email:String)
+
+
+    /************************************************
+     * Creates a new document in collection 'friends'
+     * for the newly created user.
+     */
+    fun createFriendDocument():Task<Void>  {
+        val userId = FirebaseAuth.getInstance().uid!!
+        return db.collection(FRIENDS_COLLECTION).document(userId)
+            .set(FriendInfo())
+    }
 }

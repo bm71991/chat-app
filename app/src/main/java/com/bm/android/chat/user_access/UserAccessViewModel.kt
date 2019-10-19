@@ -41,8 +41,17 @@ class UserAccessViewModel: ViewModel() {
         return mAuth.currentUser!!.displayName.isNullOrEmpty()
     }
 
+    /***********************************************************
+     * Username registration:
+     * 1. Check Firestore to see if username is taken, if not create new doc in 'users' collection
+     * 2. Set the Firebase user's display name to the newly chosen username
+     * 3. Create a new document in the 'friends' collection for the new user
+     */
+
+    //1.
     fun checkFirestore(username:String, email:String)  {
-        mAccessRepository.checkFirestore(username, email).addOnSuccessListener {
+        mAccessRepository.checkFirestore(username, email)
+            .addOnSuccessListener {
             Log.d(TAG, USERNAME_AVAILABLE)
             setUsernameAsDisplayName(username, mAuth.currentUser!!)
         }
@@ -50,13 +59,26 @@ class UserAccessViewModel: ViewModel() {
                 nameRegisterStatus.value = it.message.toString()
             }
     }
-
+    //2.
     private fun setUsernameAsDisplayName(username:String, currentUser: FirebaseUser)    {
         mAccessRepository.setUsernameAsDisplayName(username, currentUser)
             .addOnSuccessListener {
                 Log.d(TAG, USERNAME_REGISTERED)
-                nameRegisterStatus.value = USERNAME_REGISTERED
+                createFriendsDocument()
+//                nameRegisterStatus.value = USERNAME_REGISTERED
         }
+            .addOnFailureListener   {
+                nameRegisterStatus.value = it.message.toString()
+            }
+    }
+
+    //3.
+    fun createFriendsDocument() {
+        mAccessRepository.createFriendDocument()
+            .addOnSuccessListener {
+                Log.d(TAG, "Friend document created")
+                nameRegisterStatus.value = USERNAME_REGISTERED
+            }
             .addOnFailureListener   {
                 nameRegisterStatus.value = it.message.toString()
             }

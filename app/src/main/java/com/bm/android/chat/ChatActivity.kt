@@ -160,7 +160,7 @@ class ChatActivity : AppCompatActivity(),
         }
     }
 
-    /*Used to pass result of [Fragment].startActivityResult to [Fragment].onActivityResult */
+    /*Used to propagate data from [Activity].onActivityResult to [Fragment].onActivityResult */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         Log.d("test", "requestCode == $requestCode")
         super.onActivityResult(requestCode, resultCode, data)

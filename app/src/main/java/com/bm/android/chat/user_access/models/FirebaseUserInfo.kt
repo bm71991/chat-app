@@ -1,4 +1,4 @@
-package com.bm.android.tictactoe.user_access.models
+package com.bm.android.chat.user_access.models
 
 import com.google.firebase.firestore.Exclude
 

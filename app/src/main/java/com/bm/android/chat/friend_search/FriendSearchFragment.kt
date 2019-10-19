@@ -14,9 +14,13 @@ class FriendSearchFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(
-            R.layout.fragment_friend_search,
-            container, false
-        )
+        val v = inflater.inflate(R.layout.fragment_friend_search, container, false)
+
+
+
+
+
+
+        return v
     }
 }
