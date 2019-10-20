@@ -21,10 +21,11 @@ class ConvosPagerFragment : Fragment() {
 
     interface ConvosPagerFragmentInterface {
         /********************************************
-         * Sine it is the entry point of the app,
+         * Since it is the entry point of the app,
          * this fragment enables the NavDrawer
          */
         fun showNavDrawer()
+        fun setUsernameInNavDrawer()
     }
 
     override fun onCreateView(
@@ -35,8 +36,7 @@ class ConvosPagerFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         val v = inflater.inflate(
             R.layout.convos_pager,
-            container, false
-        )
+            container, false)
         Log.d(TAG, "onCreateView called in ConvosPagerFragment")
         val viewPager = v.findViewById<ViewPager>(R.id.view_pager)
         val tabLayout = v.findViewById<TabLayout>(R.id.tab_layout)
@@ -45,6 +45,7 @@ class ConvosPagerFragment : Fragment() {
         tabLayout.setupWithViewPager(viewPager)
 
         mCallback.showNavDrawer()
+        mCallback.setUsernameInNavDrawer()
         return v
     }
 

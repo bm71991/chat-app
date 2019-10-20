@@ -65,7 +65,6 @@ class UserAccessViewModel: ViewModel() {
             .addOnSuccessListener {
                 Log.d(TAG, USERNAME_REGISTERED)
                 createFriendsDocument()
-//                nameRegisterStatus.value = USERNAME_REGISTERED
         }
             .addOnFailureListener   {
                 nameRegisterStatus.value = it.message.toString()
@@ -73,7 +72,7 @@ class UserAccessViewModel: ViewModel() {
     }
 
     //3.
-    fun createFriendsDocument() {
+    private fun createFriendsDocument() {
         mAccessRepository.createFriendDocument()
             .addOnSuccessListener {
                 Log.d(TAG, "Friend document created")

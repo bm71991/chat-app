@@ -1,9 +1,11 @@
 package com.bm.android.chat.user_access.models
 
-import java.sql.Timestamp
+import java.util.Date
+import com.google.firebase.Timestamp
 
 /**************************************
  * Contains data about a friend request
  * received by a user
  */
-data class ReceivedFriendRequest(var senderUid:String, var timeRequestSent: Timestamp)
+data class ReceivedFriendRequest(var senderUid:String = "",
+                                 var timeRequestSent: Timestamp = Timestamp(Date()) )

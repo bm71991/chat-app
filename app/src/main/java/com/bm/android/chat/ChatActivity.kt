@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -102,17 +103,18 @@ class ChatActivity : AppCompatActivity(),
         enableNavDrawer(false)
     }
 
+    /* Used in UsernameFragment */
+    override fun onStartUsernameRegisteredFragment() {
+        replaceFragment(UsernameRegisteredFragment())
+    }
+
+    /*Used in UsernameRegisteredFragment*/
     override fun onStartConvosPagerFragment() {
         /*Should not be able to hit back button and go back to login/signin flow */
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         }
         replaceFragment(ConvosPagerFragment())
-    }
-
-    /* Used in UsernameFragment */
-    override fun onStartUsernameRegisteredFragment() {
-        replaceFragment(UsernameRegisteredFragment())
     }
 
     /*Used in EmailSignupFragment*/
@@ -134,13 +136,19 @@ class ChatActivity : AppCompatActivity(),
         enableNavDrawer(true)
     }
 
-    private fun onStartLoginFragment()  {
-        replaceFragment(LoginFragment())
+    override fun setUsernameInNavDrawer() {
+        val headerView = nav_view.getHeaderView(0)
+        val userTextView = headerView.findViewById<TextView>(R.id.username_header_text)
+        userTextView.text = mAuth.currentUser!!.displayName
     }
 
     /*Used in Navigation Drawer*/
     private fun onStartRequestsPagerFragment()    {
         replaceFragment(RequestsPagerFragment())
+    }
+
+    private fun onStartLoginFragment()  {
+        replaceFragment(LoginFragment())
     }
 
     private fun onStartFriendSearchFragment()    {

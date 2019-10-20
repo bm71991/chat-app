@@ -8,6 +8,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
+            android:layout_gravity="center_horizontal"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/friend_search_label"
@@ -19,18 +20,23 @@
             android:ems="10"
             android:hint="@string/friend_search_hint" />
         <Button
+            android:id="@+id/friend_search_btn"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="@string/friend_search_btn"/>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-        <!--search_result layout visibility is set to "gone" by default-->
-        <include layout="@layout/search_result"/>
-        <ProgressBar
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"/>
+            android:layout_height="wrap_content">
+            <!--search_result layout visibility is set to "gone" by default-->
+            <include layout="@layout/search_result"/>
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                android:layout_gravity="center_horizontal"
+                />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

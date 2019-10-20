@@ -2,6 +2,7 @@ package com.bm.android.chat.user_access
 
 import android.util.Log
 import com.bm.android.chat.user_access.models.FriendInfo
+import com.bm.android.chat.user_access.models.User
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -57,10 +58,6 @@ class UserAccessRepository {
             .setDisplayName(username).build()
         return currentUser.updateProfile(usernameUpdate)
     }
-
-    /* Used in checkFirestore to add a user document to collection users */
-    class User(var uid:String?, var email:String)
-
 
     /************************************************
      * Creates a new document in collection 'friends'
