@@ -9,4 +9,5 @@ import java.util.*
  * initiated by a user
  */
 data class SentFriendRequest(var recipientUid:String = "",
+                             var recipientUsername:String = "",
                              var timeRequestSent: Timestamp = Timestamp(Date()) )

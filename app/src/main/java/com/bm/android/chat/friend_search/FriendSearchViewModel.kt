@@ -8,7 +8,9 @@ import com.bm.android.chat.user_access.models.FriendInfo
 import com.bm.android.chat.user_access.models.ReceivedFriendRequest
 import com.bm.android.chat.user_access.models.SentFriendRequest
 import com.bm.android.chat.user_access.models.User
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.type.Date
 
 class FriendSearchViewModel : ViewModel() {
     private val friendSearchRepo = FriendSearchRepository()
@@ -17,7 +19,9 @@ class FriendSearchViewModel : ViewModel() {
     private val sendFriendRequestStatus = MutableLiveData<String>()
     private val mAuth = FirebaseAuth.getInstance()
     private val userId = mAuth.uid!!
+    private val currentUsername = mAuth.currentUser!!.displayName!!
     private var queriedUserId = ""
+    private var queriedUsername = "";
 
     fun getUsernameSearchStatus(): LiveData<String> = usernameSearchStatus
     fun clearUsernameSearchStatus() {
@@ -44,6 +48,7 @@ class FriendSearchViewModel : ViewModel() {
                 if (it.exists())    {
                     val searchedUserDocument = it.toObject(User::class.java)
                     queriedUserId = searchedUserDocument!!.uid!!
+                    queriedUsername = username
                     checkIfFriendable()
                 } else    {
                     usernameSearchStatus.value = USERNAME_NOT_FOUND
@@ -61,59 +66,38 @@ class FriendSearchViewModel : ViewModel() {
      * 3. User is already friends with this username
      */
     private fun checkIfFriendable() {
-        friendSearchRepo.getFriendInfo(userId)
-            .addOnSuccessListener {
-                val friendInfo = it.toObject(FriendInfo::class.java)
-                checkIfSentRequest(friendInfo!!, queriedUserId)
-            }
+                checkIfSentRequest(queriedUserId)
     }
     //1.
-    private fun checkIfSentRequest(friendInfo: FriendInfo,
-                                   prospectiveFriendId: String) {
-        var i = 0
-        var idMatch = false
-        val sentRequests = friendInfo.sentRequests
+    private fun checkIfSentRequest(prospectiveFriendId: String) {
 
-        while (i < sentRequests.size && !idMatch)    {
-            if (sentRequests[i].recipientUid == prospectiveFriendId)    {
-                usernameSearchStatus.value = REQUEST_ALREADY_SENT
-                idMatch = true
+        friendSearchRepo.checkIfSentRequest(prospectiveFriendId)
+            .addOnSuccessListener {
+                if (it.isEmpty)    {
+                    checkIfReceivedRequest(queriedUserId)
+                } else {
+                    usernameSearchStatus.value = REQUEST_ALREADY_SENT
+                }
             }
-            i++
-        }
-        if (!idMatch) checkIfReceivedRequest(friendInfo, prospectiveFriendId)
     }
     //2.
-    private fun checkIfReceivedRequest(friendInfo: FriendInfo,
+    private fun checkIfReceivedRequest(
                                        prospectiveFriendId: String) {
-        var i = 0
-        var idMatch = false
-        val receivedRequests = friendInfo.receivedRequests
-
-        while (i < receivedRequests.size && !idMatch) {
-            if (receivedRequests[i].senderUid == prospectiveFriendId)   {
-                usernameSearchStatus.value = REQUEST_ALREADY_RECEIVED
-                idMatch = true
+        Log.d(TAG, "in checkIfReceivedRequest friend Id = $prospectiveFriendId")
+        friendSearchRepo.checkIfReceivedRequest(prospectiveFriendId)
+            .addOnSuccessListener {
+                if (it.isEmpty)    {
+                    //checkIfAlreadyFriends goes here
+                    usernameSearchStatus.value = OK_TO_DISPLAY
+                } else {
+                    usernameSearchStatus.value = REQUEST_ALREADY_RECEIVED
+                }
             }
-            i++
-        }
-        if (!idMatch) checkIfAlreadyFriends(friendInfo, prospectiveFriendId)
     }
     //3.
     private fun checkIfAlreadyFriends(friendInfo: FriendInfo,
         prospectiveFriendId: String) {
-        var i = 0
-        var idMatch = false
-        val currentFriends = friendInfo.currentFriends
-
-        while (i < currentFriends.size && !idMatch) {
-            if (currentFriends[i] == prospectiveFriendId)   {
-                usernameSearchStatus.value = ALREADY_FRIENDS
-                idMatch = true
-            }
-            i++
-        }
-        if (!idMatch) usernameSearchStatus.value = OK_TO_DISPLAY
+        //TODO
     }
 
     /*********************************************************
@@ -125,7 +109,7 @@ class FriendSearchViewModel : ViewModel() {
     }
 
     private fun updateSentFriendRequests()  {
-        val sentFriendRequest = SentFriendRequest(queriedUserId)
+        val sentFriendRequest = SentFriendRequest(queriedUserId, queriedUsername)
         friendSearchRepo.updateSentFriendRequests(userId, sentFriendRequest)
             .addOnSuccessListener {
                 updateReceivedFriendRequests()
@@ -136,7 +120,7 @@ class FriendSearchViewModel : ViewModel() {
     }
 
     private fun updateReceivedFriendRequests()  {
-        val receivedFriendRequest = ReceivedFriendRequest(userId)
+        val receivedFriendRequest = ReceivedFriendRequest(userId, currentUsername, Timestamp(java.util.Date()))
         friendSearchRepo.updateReceivedFriendRequests(queriedUserId, receivedFriendRequest)
             .addOnSuccessListener {
                 sendFriendRequestStatus.value = REQUEST_SENT

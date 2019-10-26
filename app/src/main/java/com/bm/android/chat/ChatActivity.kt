@@ -15,6 +15,7 @@ import com.bm.android.chat.conversations.ConvosPagerFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
+import com.facebook.login.LoginManager
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.twitter.sdk.android.core.Twitter
@@ -208,7 +209,10 @@ class ChatActivity : AppCompatActivity(),
             R.id.friend_requests -> onStartRequestsPagerFragment()
             R.id.conversations -> onStartConvosPagerFragment()
             R.id.log_out -> {
+                //Log out for Firebase
                 mAuth.signOut()
+                //Log out for Facebook
+                LoginManager.getInstance().logOut()
                 onStartLoginFragment()
             }
         }

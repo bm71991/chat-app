@@ -8,4 +8,5 @@ import com.google.firebase.Timestamp
  * received by a user
  */
 data class ReceivedFriendRequest(var senderUid:String = "",
+                                 var senderUsername:String = "",
                                  var timeRequestSent: Timestamp = Timestamp(Date()) )

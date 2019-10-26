@@ -44,7 +44,7 @@ public class StartFragment extends Fragment {
         adapter = new FirestoreRecyclerAdapter<ChatMessage, MessageHolder>(options) {
             @Override
             public void onBindViewHolder(MessageHolder holder, int position, ChatMessage model) {
-                holder.bindData(model);
+//                holder.bindData(model);
             }
 
             @Override
