@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
@@ -18,9 +19,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 
 class ReceivedRequestsFragment : Fragment() {
+    private val mViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(FriendRequestsViewModel::class.java)
+    }
     private val TAG = "mainLog"
     private var adapter: FirestoreRecyclerAdapter<*, *>? = null
     private var requestsList: RecyclerView? = null
+    private val onSendRequestHandler = object : RequestHolder.RequestHolderClick  {
+        override fun onClickAcceptBtn(senderId: String, senderUsername: String) {
+            Log.d(TAG, "IN ONCLICK ACCEPT BTN")
+            mViewModel.removedReceivedAndSentRequests(senderId)
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, parent: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -38,7 +48,8 @@ class ReceivedRequestsFragment : Fragment() {
             .setQuery(query, ReceivedFriendRequest::class.java)
             .build()
 
-        adapter = object : FirestoreRecyclerAdapter<ReceivedFriendRequest, RequestHolder>(options) {
+        adapter = object : FirestoreRecyclerAdapter<ReceivedFriendRequest, RequestHolder>(options)
+        {
             public override fun onBindViewHolder(holder: RequestHolder, position: Int,
                 model: ReceivedFriendRequest) {
                 holder.bindData(model)
@@ -48,13 +59,14 @@ class ReceivedRequestsFragment : Fragment() {
                 val view = LayoutInflater.from(group.context)
                     .inflate(R.layout.received_request, group, false)
 
-                return RequestHolder(view)
+                return RequestHolder(view, onSendRequestHandler)
             }
 
             override fun onError(e: FirebaseFirestoreException) {
                 super.onError(e)
                 Log.d(TAG, e.toString())
             }
+
         }
         adapter?.notifyDataSetChanged()
         requestsList?.adapter = adapter

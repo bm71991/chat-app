@@ -11,6 +11,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.ConvosPagerFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
@@ -213,6 +214,7 @@ class ChatActivity : AppCompatActivity(),
                 mAuth.signOut()
                 //Log out for Facebook
                 LoginManager.getInstance().logOut()
+                ViewModelStore().clear()
                 onStartLoginFragment()
             }
         }

@@ -8,18 +8,9 @@ import com.google.firebase.firestore.*
 
 class FriendSearchRepository   {
     private val db = FirebaseFirestore.getInstance()
-    private val userId = FirebaseAuth.getInstance().uid!!
     private val USER_COLLECTION = "users"
     private val FRIENDS_COLLECTION = "friends"
     private val TAG = "mainLog"
-
-//    /***************************************************************
-//     * Get the document from collection 'friends' whose id == userId
-//     */
-//    fun getFriendInfo(userId:String): Task<DocumentSnapshot>   {
-//        return db.collection(FRIENDS_COLLECTION)
-//            .document(userId).get()
-//    }
 
     fun getUserInfo(username:String):Task<DocumentSnapshot>    {
         return db.collection(USER_COLLECTION)
@@ -53,7 +44,7 @@ class FriendSearchRepository   {
 
     fun checkIfSentRequest(friendUid:String):Task<QuerySnapshot>    {
         return db.collection(FRIENDS_COLLECTION)
-            .document(userId)
+            .document(FirebaseAuth.getInstance().uid!!)
             .collection("sentRequests")
             .whereEqualTo("recipientUid", friendUid)
             .get()
@@ -61,7 +52,7 @@ class FriendSearchRepository   {
 
     fun checkIfReceivedRequest(friendUid:String):Task<QuerySnapshot>    {
         return db.collection(FRIENDS_COLLECTION)
-            .document(userId)
+            .document(FirebaseAuth.getInstance().uid!!)
             .collection("receivedRequests")
             .whereEqualTo("senderUid", friendUid)
             .get()

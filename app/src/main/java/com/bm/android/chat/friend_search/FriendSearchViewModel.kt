@@ -10,6 +10,7 @@ import com.bm.android.chat.user_access.models.SentFriendRequest
 import com.bm.android.chat.user_access.models.User
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.CollectionReference
 import com.google.type.Date
 
 class FriendSearchViewModel : ViewModel() {
@@ -17,9 +18,6 @@ class FriendSearchViewModel : ViewModel() {
     private val TAG = "mainLog"
     private val usernameSearchStatus = MutableLiveData<String>()
     private val sendFriendRequestStatus = MutableLiveData<String>()
-    private val mAuth = FirebaseAuth.getInstance()
-    private val userId = mAuth.uid!!
-    private val currentUsername = mAuth.currentUser!!.displayName!!
     private var queriedUserId = ""
     private var queriedUsername = "";
 
@@ -110,7 +108,8 @@ class FriendSearchViewModel : ViewModel() {
 
     private fun updateSentFriendRequests()  {
         val sentFriendRequest = SentFriendRequest(queriedUserId, queriedUsername)
-        friendSearchRepo.updateSentFriendRequests(userId, sentFriendRequest)
+        Log.d(TAG, "QUERIED USER ID = $queriedUserId, CURRENT USER ID = ${FirebaseAuth.getInstance().uid!!}")
+        friendSearchRepo.updateSentFriendRequests(FirebaseAuth.getInstance().uid!!, sentFriendRequest)
             .addOnSuccessListener {
                 updateReceivedFriendRequests()
             }
@@ -120,7 +119,10 @@ class FriendSearchViewModel : ViewModel() {
     }
 
     private fun updateReceivedFriendRequests()  {
-        val receivedFriendRequest = ReceivedFriendRequest(userId, currentUsername, Timestamp(java.util.Date()))
+        val receivedFriendRequest = ReceivedFriendRequest(
+            FirebaseAuth.getInstance().uid!!,
+            FirebaseAuth.getInstance().currentUser!!.displayName!!,
+            Timestamp(java.util.Date()))
         friendSearchRepo.updateReceivedFriendRequests(queriedUserId, receivedFriendRequest)
             .addOnSuccessListener {
                 sendFriendRequestStatus.value = REQUEST_SENT
@@ -129,6 +131,10 @@ class FriendSearchViewModel : ViewModel() {
                 sendFriendRequestStatus.value = it.toString()
             }
     }
+
+//    fun getReceivedRequests():CollectionReference   {
+//        return friendSearchRepo.getReceivedRequests()
+//    }
     /******************************************************************************
      * String constants propagated to FriendSearchFragment by usernameSearchStatus
      */
