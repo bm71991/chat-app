@@ -27,18 +27,14 @@ class ReceivedRequestsFragment : Fragment() {
     private var requestsList: RecyclerView? = null
     private val onSendRequestHandler = object : RequestHolder.RequestHolderClick  {
         override fun onClickAcceptBtn(senderId: String, senderUsername: String) {
-            Log.d(TAG, "IN ONCLICK ACCEPT BTN")
-            mViewModel.removedReceivedAndSentRequests(senderId)
+            mViewModel.addToCurrentFriends(senderId, senderUsername)
         }
     }
 
     override fun onCreateView(inflater: LayoutInflater, parent: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.fragment_received_requests, parent, false)
-        val query = FirebaseFirestore.getInstance()
-            .collection("friends")
-            .document(FirebaseAuth.getInstance().uid!!)
-            .collection("receivedRequests")
+        val query = mViewModel.getReceivedRequests()
 
         requestsList = v.findViewById(R.id.requests_list)
         val layoutManager = LinearLayoutManager(activity)

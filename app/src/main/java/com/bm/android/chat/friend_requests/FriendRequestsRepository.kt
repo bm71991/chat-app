@@ -2,9 +2,11 @@ package com.bm.android.chat.friend_requests
 
 import android.util.Log
 import com.bm.android.chat.DbConstants
+import com.bm.android.chat.friend_requests.models.Friend
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 
@@ -31,5 +33,17 @@ class FriendRequestsRepository  {
         return getSentFriendRequestCollection(senderId)
             .whereEqualTo("recipientUid", FirebaseAuth.getInstance().uid!!)
             .get()
+    }
+
+    /*********************************************************
+     userId = id of user for whom the friend will be added
+     friendId = id of new friend
+     friendUsername = username of new friend
+     */
+    fun addFriend(userId:String, friendId:String, friendUsername:String):Task<DocumentReference>   {
+        return db.collection(DbConstants.FRIENDS_COLLECTION)
+            .document(userId)
+            .collection(DbConstants.CURRENT_FRIENDS)
+            .add(Friend(friendId, friendUsername))
     }
 }

@@ -6,5 +6,6 @@ class DbConstants   {
         const val FRIENDS_COLLECTION = "friends"
         const val RECEIVED_REQUESTS = "receivedRequests"
         const val SENT_REQUESTS = "sentRequests"
+        const val CURRENT_FRIENDS = "currentFriends"
     }
 }
