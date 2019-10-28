@@ -9,6 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bm.android.chat.R
+import android.R.menu
+
+
+
 
 class FriendSearchFragment : Fragment() {
     private val mViewModel by lazy {
@@ -95,4 +99,8 @@ class FriendSearchFragment : Fragment() {
         mProgressBar.visibility = View.INVISIBLE
         mSearchResultLayout.visibility = View.VISIBLE
     }
+
+//    fun showMenu(showMenu: Boolean) {
+//        menu.setGroupVisible(R.id.main_menu_group, showMenu)
+//    }
 }

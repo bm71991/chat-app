@@ -4,7 +4,9 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
@@ -12,7 +14,9 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelStore
-import com.bm.android.chat.conversations.ConvosPagerFragment
+import com.bm.android.chat.conversations.ConvosFragment
+import com.bm.android.chat.conversations.NewConvoFragment
+import com.bm.android.chat.current_friends.FriendsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
@@ -32,7 +36,7 @@ class ChatActivity : AppCompatActivity(),
                      UsernameFragment.UsernameFragmentInterface,
                      UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
                      EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
-                     ConvosPagerFragment.ConvosPagerFragmentInterface {
+                     ConvosFragment.ConvosFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -40,6 +44,7 @@ class ChatActivity : AppCompatActivity(),
     private val FIRST_FRAGMENT = "loginFragment"
     private lateinit var mTwitterAuthConfig: TwitterAuthConfig
     private val mAuth = FirebaseAuth.getInstance()
+    private val CONVO_TAG = "convoTag"
     private val toggle by lazy {
         ActionBarDrawerToggle(this, drawer_layout,toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -57,12 +62,42 @@ class ChatActivity : AppCompatActivity(),
             if (currentUser.displayName.isNullOrEmpty())    {
                 addFirstFragment(UsernameFragment())
             } else {
-                addFirstFragment(ConvosPagerFragment())
+                addFirstFragmentWithTag(ConvosFragment(), CONVO_TAG)
             }
         } else {
             addFirstFragment(LoginFragment())
         }
     }
+
+
+    /******************************************
+     * Methods for configuring taskbar menu
+     */
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.menu_convo, menu)
+        val currentFragment = fm.findFragmentById(R.id.fragment_container)
+
+        if (currentFragment != null && currentFragment.tag == CONVO_TAG)    {
+            menu.setGroupVisible(R.id.add_convo_group, true)
+        } else {
+            menu.setGroupVisible(R.id.add_convo_group, false)
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.make_convo -> onStartNewConvoFragment()
+            else -> return super.onOptionsItemSelected(item)
+        }
+        return true
+    }
+
+    private fun onStartNewConvoFragment()   {
+        replaceFragmentAddToStack(NewConvoFragment())
+    }
+
 
     private fun addFirstFragment(fragment: Fragment) {
         fm.beginTransaction()
@@ -70,9 +105,21 @@ class ChatActivity : AppCompatActivity(),
             .commit()
     }
 
+    private fun addFirstFragmentWithTag(fragment: Fragment, tag:String) {
+        fm.beginTransaction()
+            .add(R.id.fragment_container, fragment, tag)
+            .commit()
+    }
+
     private fun replaceFragment(fragment: Fragment) {
         fm.beginTransaction()
             .replace(R.id.fragment_container, fragment)
+            .commit()
+    }
+
+    private fun replaceFragmentWithTag(fragment:Fragment, tag:String)   {
+        fm.beginTransaction()
+            .replace(R.id.fragment_container, fragment, tag)
             .commit()
     }
 
@@ -111,16 +158,18 @@ class ChatActivity : AppCompatActivity(),
     }
 
     /*Used in UsernameRegisteredFragment*/
-    override fun onStartConvosPagerFragment() {
+    override fun onStartConvosFragment() {
         /*Should not be able to hit back button and go back to login/signin flow */
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         }
-        replaceFragment(ConvosPagerFragment())
+
+        replaceFragmentWithTag(ConvosFragment(), CONVO_TAG)
     }
 
     /*Used in EmailSignupFragment*/
     override fun onStartSignupSuccessFragment() {
+
         /* pop/reverse onStartSignupFragment() transaction */
         fm.popBackStack()
         /*replace LoginFragment with EmailSignupSuccessFragment and add transaction to stack*/
@@ -133,7 +182,7 @@ class ChatActivity : AppCompatActivity(),
         fm.popBackStack()
     }
 
-    /*Used in ConvosPagerFragment*/
+    /*Used in ConvosFragment*/
     override fun showNavDrawer()    {
         enableNavDrawer(true)
     }
@@ -155,6 +204,10 @@ class ChatActivity : AppCompatActivity(),
 
     private fun onStartFriendSearchFragment()    {
         replaceFragment(FriendSearchFragment())
+    }
+
+    private fun onStartFriendsFragment()    {
+        replaceFragment(FriendsFragment())
     }
 
     override fun onBackPressed() {
@@ -205,10 +258,16 @@ class ChatActivity : AppCompatActivity(),
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         closeNavDrawer()
+        invalidateOptionsMenu()
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        }
+
         when (item.itemId)  {
             R.id.friend_search -> onStartFriendSearchFragment()
             R.id.friend_requests -> onStartRequestsPagerFragment()
-            R.id.conversations -> onStartConvosPagerFragment()
+            R.id.conversations -> onStartConvosFragment()
+            R.id.current_friends -> onStartFriendsFragment()
             R.id.log_out -> {
                 //Log out for Firebase
                 mAuth.signOut()

@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.current_friends
 
 import android.os.Bundle
 import android.util.Log
@@ -14,13 +14,10 @@ class FriendsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+        savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+
         Log.i("mainLog", "onCreateView of FriendsFragment called")
-        return inflater.inflate(
-            R.layout.fragment_friends,
-            container, false
-        )
+        return inflater.inflate(R.layout.fragment_friends, container, false)
     }
 }

@@ -3,6 +3,7 @@ package com.bm.android.chat.conversations
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 
@@ -12,17 +13,26 @@ import com.bm.android.chat.R
 import com.google.firebase.auth.FirebaseAuth
 
 class ConvosFragment : Fragment() {
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
+    interface ConvosFragmentInterface {
+        /********************************************
+         * Since it is the entry point of the app,
+         * this fragment enables the NavDrawer
+         */
+        fun showNavDrawer()
+        fun setUsernameInNavDrawer()
+    }
 
-        Log.i("mainLog", "onCreateView of ConvosFragment called: ${FirebaseAuth.getInstance().uid!!}")
-        return inflater.inflate(
-            R.layout.fragment_convos,
-            container, false
-        )
+    private val mCallback by lazy {
+        context as ConvosFragmentInterface
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
+                              savedInstanceState: Bundle?): View? {
+        super.onCreateView(inflater, container, savedInstanceState)
+        val v = inflater.inflate(R.layout.fragment_convos, container, false)
+        mCallback.showNavDrawer()
+        mCallback.setUsernameInNavDrawer()
+        setHasOptionsMenu(true)
+        return v
     }
 }

@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 
 import com.bm.android.chat.R
-import com.bm.android.chat.conversations.ConvosPagerFragment
 import com.google.android.material.tabs.TabLayout
 
 class RequestsPagerFragment : Fragment() {
@@ -19,6 +18,7 @@ class RequestsPagerFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+        setHasOptionsMenu(false)
         val v = inflater.inflate(
             R.layout.requests_pager,
             container, false

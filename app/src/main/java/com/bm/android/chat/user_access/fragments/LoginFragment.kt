@@ -38,7 +38,7 @@ class LoginFragment : Fragment() {
     interface LoginFragmentInterface  {
         fun onStartSignupFragment()
         fun onStartUsernameFragment()
-        fun onStartConvosPagerFragment()
+        fun onStartConvosFragment()
         fun disableNavDrawer()
     }
 
@@ -54,6 +54,7 @@ class LoginFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         mCallback.disableNavDrawer()
+
 
         auth = FirebaseAuth.getInstance()
         val mViewModel = ViewModelProviders.of(activity!!).get(UserAccessViewModel::class.java)
@@ -131,7 +132,7 @@ class LoginFragment : Fragment() {
                     if (mViewModel.accountLacksUsername())  {
                         mCallback.onStartUsernameFragment()
                     } else {
-                        mCallback.onStartConvosPagerFragment()
+                        mCallback.onStartConvosFragment()
                     }
                 } else {
                     Toast.makeText(context, result.toString(), Toast.LENGTH_LONG).show()
@@ -232,7 +233,7 @@ class LoginFragment : Fragment() {
                 Log.d(TAG, "current displayname: ${auth.currentUser!!.displayName}")
                 mCallback.onStartUsernameFragment()
             } else {
-                mCallback.onStartConvosPagerFragment()
+                mCallback.onStartConvosFragment()
             }
         }
     }

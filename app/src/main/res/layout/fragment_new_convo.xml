@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/recipients"
+        android:layout_gravity="center_horizontal"
+        android:textSize="30sp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recipient_list"
+        android:background="#D3D3D3"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginBottom="10dp"/>
+    <Button
+        android:id="@+id/add_recipient_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_recipient"
+        android:layout_gravity="center_horizontal"/>
+    <LinearLayout
+        android:layout_marginTop="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/message_input"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:padding="10dip"
+            android:background="@drawable/edit_text_background"
+            android:hint="test"
+            android:inputType="text"
+            android:minEms="15"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="send"/>
+    </LinearLayout>
+
+
+
+</LinearLayout>
