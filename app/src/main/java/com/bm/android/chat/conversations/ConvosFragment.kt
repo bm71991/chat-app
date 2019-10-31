@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 
 import com.bm.android.chat.R
+import com.bm.android.chat.friend_requests.models.Friend
 import com.google.firebase.auth.FirebaseAuth
 
 class ConvosFragment : Fragment() {
@@ -33,6 +34,10 @@ class ConvosFragment : Fragment() {
         mCallback.showNavDrawer()
         mCallback.setUsernameInNavDrawer()
         setHasOptionsMenu(true)
+        val f = Friend("foo", "bar")
+        val d = Friend("foo", "bar")
+
+        Log.d("friends", "ARE EQUAL: ${f.equals(d)}")
         return v
     }
 }

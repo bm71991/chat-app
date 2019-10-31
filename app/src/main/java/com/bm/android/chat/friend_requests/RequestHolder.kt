@@ -40,10 +40,4 @@ class RequestHolder(itemView: View, clickAction:RequestHolderClick) : RecyclerVi
         val formatter = SimpleDateFormat("EEE, MMM d yyyy 'at' hh:mm aaa")
         return formatter.format(timestamp)
     }
-
-    fun onClickAccept() {
-        //remove receivedRequest document from collection receivedRequests for the current user
-        //remove sentRequest document from collection sentRequests from the sending user
-        //add Friend document to both the current and the sending user's Friends collection
-    }
 }

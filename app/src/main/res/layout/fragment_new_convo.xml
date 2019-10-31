@@ -14,7 +14,7 @@
         android:layout_marginBottom="10dp"/>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recipient_list"
-        android:background="#D3D3D3"
+        android:background="@drawable/edit_text_background"
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:layout_marginBottom="10dp"/>

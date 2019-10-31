@@ -16,6 +16,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.ConvosFragment
 import com.bm.android.chat.conversations.NewConvoFragment
+import com.bm.android.chat.conversations.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
@@ -36,7 +37,8 @@ class ChatActivity : AppCompatActivity(),
                      UsernameFragment.UsernameFragmentInterface,
                      UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
                      EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
-                     ConvosFragment.ConvosFragmentInterface {
+                     ConvosFragment.ConvosFragmentInterface,
+                     NewConvoFragment.NewConvoFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -191,6 +193,14 @@ class ChatActivity : AppCompatActivity(),
         val headerView = nav_view.getHeaderView(0)
         val userTextView = headerView.findViewById<TextView>(R.id.username_header_text)
         userTextView.text = mAuth.currentUser!!.displayName
+    }
+
+    /*Used in NewConvoFragment*/
+    override fun showProspectiveRecipientDialog()    {
+        val recipientDialog = RecipientDialog()
+        val convoFragment = fm.findFragmentById(R.id.fragment_container)
+        recipientDialog.setTargetFragment(convoFragment, 1)
+        recipientDialog.show(fm, "recipientDialog")
     }
 
     /*Used in Navigation Drawer*/
