@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,6 +40,7 @@ class NewConvoFragment : Fragment(), RecipientDialog.RecipientDialogInterface {
         val v = inflater.inflate(R.layout.fragment_new_convo, container, false)
         recipientList = v.findViewById(R.id.recipient_list)
         addRecipientBtn = v.findViewById(R.id.add_recipient_btn)
+        val sendMessageBtn = v.findViewById<Button>(R.id.send_message_btn)
 
         addRecipientBtn.setOnClickListener {
             mCallback.showProspectiveRecipientDialog()
@@ -46,11 +48,16 @@ class NewConvoFragment : Fragment(), RecipientDialog.RecipientDialogInterface {
 
         recipientList.layoutManager = LinearLayoutManager(activity)
         recipientList.adapter = RecipientAdapter(mViewModel.recipientList, mViewHolderCallback)
+
+        sendMessageBtn.setOnClickListener {
+            val messageInput = v.findViewById<EditText>(R.id.message_input)
+            mViewModel.checkIfChatExists(messageInput.text.toString())
+        }
         return v
     }
 
     //used in RecipientDialog
-    override fun notifyRecipientListChange() {
+    override fun notifyRecipientListChanged() {
         recipientList.adapter?.notifyDataSetChanged()
         mViewModel.namesChecked.clear()
     }

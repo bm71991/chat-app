@@ -13,6 +13,7 @@ class ConvoViewModel: ViewModel()   {
     interface UpdateListInterface {
         fun notifyRecipientListChange()
     }
+    val mConvoRepository = ConvoRepository()
 
     private val TAG = "convoTag"
     private val convoRepository = ConvoRepository()
@@ -68,11 +69,54 @@ class ConvoViewModel: ViewModel()   {
             index++
         }
 
-        Log.d("friends", "alreadyInList = $alreadyInList")
         return !alreadyInList
     }
 
     fun removeFriendInConvo(friendToRemove:Friend) {
         recipientList.remove(friendToRemove)
+    }
+
+    fun checkIfChatExists(message:String) {
+        /************************************
+         * add current user to recipient list
+         */
+        val auth = FirebaseAuth.getInstance()
+        val currentUserId = auth.uid!!
+        val currentUsername = auth.currentUser!!.displayName!!
+        recipientList.add(Friend(currentUserId, currentUsername))
+
+        mConvoRepository.getChat(recipientList)
+            .addOnSuccessListener {
+                if (it.documents.isEmpty()) {
+                    Log.d("chatLog", "this chat does not exist yet")
+                    /**********************************************************
+                     * A chat group with this combination of users does not
+                     * already exist: create a new chat document and
+                     * subsequently add the message
+                     */
+                    addChat(message)
+                } else {
+                    Log.d("chatLog", "this chat already exists")
+                    /**********************************************************
+                     * A chat group with this combination of users does
+                     * already exists: add the message to the existing chat
+                     * document
+                     */
+                    val existingChatId = it.documents[0].id
+                    addMessage(existingChatId, message)
+                }
+            }
+    }
+
+    private fun addChat(message:String)   {
+        mConvoRepository.addChat(recipientList)
+            .addOnSuccessListener {
+                //get id of newly added doc
+                addMessage(it.id, message)
+            }
+    }
+
+    private fun addMessage(chatId:String, message:String)    {
+        mConvoRepository.addMessage(chatId, message, FirebaseAuth.getInstance().uid!!)
     }
 }

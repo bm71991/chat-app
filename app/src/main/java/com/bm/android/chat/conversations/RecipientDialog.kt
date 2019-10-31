@@ -21,7 +21,7 @@ class RecipientDialog: DialogFragment() {
     }
 
     interface RecipientDialogInterface {
-        fun notifyRecipientListChange()
+        fun notifyRecipientListChanged()
     }
     private lateinit var mRecyclerView:RecyclerView
     private lateinit var mAdapter:ProspectiveRecipientAdapter
@@ -70,7 +70,7 @@ class RecipientDialog: DialogFragment() {
                 //add the friends whose names were checked to the recipient list
                 mViewModel.recipientList.addAll(mViewModel.namesChecked)
                 val newConvoCallback = targetFragment as RecipientDialogInterface
-                newConvoCallback.notifyRecipientListChange()
+                newConvoCallback.notifyRecipientListChanged()
             }
             .create()
     }
