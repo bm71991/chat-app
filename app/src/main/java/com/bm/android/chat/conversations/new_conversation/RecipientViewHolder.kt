@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.new_conversation
 
 import android.view.View
 import android.widget.ImageButton
@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.friend_requests.models.Friend
 
-class RecipientViewHolder(itemView:View, viewHolderCallback:RecipientViewHolderInterface)
+class RecipientViewHolder(itemView:View, viewHolderCallback: RecipientViewHolderInterface)
     : RecyclerView.ViewHolder(itemView) {
     interface RecipientViewHolderInterface  {
         fun onClickDeleteBtn(friend: Friend)

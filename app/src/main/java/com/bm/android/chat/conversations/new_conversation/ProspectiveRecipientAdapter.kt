@@ -1,12 +1,11 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.new_conversation
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.friend_requests.models.Friend
-import com.bm.android.chat.conversations.ProspectiveRecipientViewHolder.ProspectiveRecipientInterface
+import com.bm.android.chat.conversations.new_conversation.ProspectiveRecipientViewHolder.ProspectiveRecipientInterface
 
 class ProspectiveRecipientAdapter(private val mDataset: List<Friend>,
                                   clickAction: ProspectiveRecipientInterface) :
@@ -16,7 +15,10 @@ class ProspectiveRecipientAdapter(private val mDataset: List<Friend>,
             ProspectiveRecipientViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.recipient_dialog_item, parent, false)
-        return ProspectiveRecipientViewHolder(view, mClickAction)
+        return ProspectiveRecipientViewHolder(
+            view,
+            mClickAction
+        )
     }
 
     override fun onBindViewHolder(holder: ProspectiveRecipientViewHolder, position: Int) {

@@ -1,15 +1,16 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.new_conversation
 
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.bm.android.chat.conversations.ConvoRepository
+import com.bm.android.chat.conversations.models.DataLoading
 import com.bm.android.chat.friend_requests.models.Friend
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.QueryDocumentSnapshot
-import com.google.firestore.v1.Document
 
-class ConvoViewModel: ViewModel()   {
+class NewConvoViewModel: ViewModel()   {
     interface UpdateListInterface {
         fun notifyRecipientListChange()
     }
@@ -22,10 +23,17 @@ class ConvoViewModel: ViewModel()   {
     //keeps checkbox state in RecipientDialog
     var namesChecked = HashSet<Friend>()
     //for indicating when getProspectiveRecipients() is done calling Firestore
-    private var prospectiveRecipsStatus = MutableLiveData<String>()
+    private var prospectiveRecipsStatus = MutableLiveData<DataLoading<ArrayList<Friend>>>()
     var prospectiveRecipients = ArrayList<Friend>()
+    private var newConvoStatus = MutableLiveData<DataLoading<String>>()
 
-    fun getProspectiveRecipsStatus():LiveData<String> = prospectiveRecipsStatus
+    fun getNewConvoStatus():LiveData<DataLoading<String>> = newConvoStatus
+    fun clearNewConvoStatus()   {
+        newConvoStatus.value = null
+    }
+
+    fun getProspectiveRecipsStatus():LiveData<DataLoading<ArrayList<Friend>>>
+            = prospectiveRecipsStatus
     fun clearProspectiveRecipsStatus() {
         prospectiveRecipsStatus.value = null
     }
@@ -40,20 +48,20 @@ class ConvoViewModel: ViewModel()   {
         Log.d("friends", "CALLED")
         val auth = FirebaseAuth.getInstance()
         val userId = auth.uid!!
-        val prospectiveRecips = ArrayList<Friend>()
+        val prospectiveRecipients = ArrayList<Friend>()
         convoRepository.getAllCurrentFriends(userId)
             .addOnSuccessListener {
                 for (document in it)    {
                     if (shouldBeAdded(document))    {
-                        prospectiveRecips.add(Friend(document.get("uid") as String,
+                        prospectiveRecipients.add(Friend(document.get("uid") as String,
                                                  document.get("username") as String))
                     }
                 }
-                prospectiveRecipients.addAll(prospectiveRecips)
-                prospectiveRecipsStatus.value = "LOADED"
+                this.prospectiveRecipients.addAll(prospectiveRecipients)
+                prospectiveRecipsStatus.value = DataLoading("LOADED", prospectiveRecipients)
             }
             .addOnFailureListener {
-                prospectiveRecipsStatus.value = it.toString()
+                prospectiveRecipsStatus.value = DataLoading("ERROR", null)
             }
     }
 
@@ -106,6 +114,9 @@ class ConvoViewModel: ViewModel()   {
                     addMessage(existingChatId, message)
                 }
             }
+            .addOnFailureListener {
+                newConvoStatus.value = DataLoading("ERROR", it.toString())
+            }
     }
 
     private fun addChat(message:String)   {
@@ -114,9 +125,19 @@ class ConvoViewModel: ViewModel()   {
                 //get id of newly added doc
                 addMessage(it.id, message)
             }
+            .addOnFailureListener {
+                newConvoStatus.value = DataLoading("ERROR", it.toString())
+            }
     }
+
 
     private fun addMessage(chatId:String, message:String)    {
         mConvoRepository.addMessage(chatId, message, FirebaseAuth.getInstance().uid!!)
+            .addOnSuccessListener {
+                newConvoStatus.value = DataLoading("MESSAGE_ADDED", chatId)
+            }
+            .addOnFailureListener {
+                newConvoStatus.value = DataLoading("ERROR", it.toString())
+            }
     }
 }

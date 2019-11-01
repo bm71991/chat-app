@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.new_conversation
 
 import android.app.AlertDialog
 import android.app.Dialog
@@ -17,14 +17,14 @@ import com.bm.android.chat.friend_requests.models.Friend
 
 class RecipientDialog: DialogFragment() {
     private val mViewModel by lazy {
-        ViewModelProviders.of(activity!!).get(ConvoViewModel::class.java)
+        ViewModelProviders.of(activity!!).get(NewConvoViewModel::class.java)
     }
 
     interface RecipientDialogInterface {
         fun notifyRecipientListChanged()
     }
     private lateinit var mRecyclerView:RecyclerView
-    private lateinit var mAdapter:ProspectiveRecipientAdapter
+    private lateinit var mAdapter: ProspectiveRecipientAdapter
     private lateinit var progressBar: ProgressBar
     private val checkBoxListener = object :
         ProspectiveRecipientViewHolder.ProspectiveRecipientInterface    {
@@ -50,9 +50,12 @@ class RecipientDialog: DialogFragment() {
             val result = it
             if (result != null) {
                 mViewModel.clearProspectiveRecipsStatus()
-                if (result == "LOADED") {
-                    mAdapter = ProspectiveRecipientAdapter(mViewModel.prospectiveRecipients,
-                        checkBoxListener)
+                if (result.status == "LOADED") {
+                    mAdapter =
+                        ProspectiveRecipientAdapter(
+                            result.payload!!,
+                            checkBoxListener
+                        )
                     mRecyclerView.adapter = mAdapter
                 } else {
                     Log.d("recips", "ERROR: $it")

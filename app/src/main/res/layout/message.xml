@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content">
     <TextView
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/text_message_body"
-        android:text="hi how are you doing"
-        android:background="@drawable/rounded_rectangle"
+        android:id="@+id/message"
+        android:text="hi"
+        android:background="@drawable/rectangle_smooth_corners"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="7dp"
         android:textColor="@color/tw__solid_white"
         android:layout_marginTop="4dp"
         android:layout_marginLeft="4dp" />
+</LinearLayout>
+

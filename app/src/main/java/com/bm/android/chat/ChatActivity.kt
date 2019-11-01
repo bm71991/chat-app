@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
@@ -14,9 +13,10 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelStore
+import com.bm.android.chat.conversations.ChatFragment
 import com.bm.android.chat.conversations.ConvosFragment
-import com.bm.android.chat.conversations.NewConvoFragment
-import com.bm.android.chat.conversations.RecipientDialog
+import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
+import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
@@ -203,6 +203,10 @@ class ChatActivity : AppCompatActivity(),
         recipientDialog.show(fm, "recipientDialog")
     }
 
+    override fun onStartChatFragment()   {
+        replaceFragment(ChatFragment())
+    }
+
     /*Used in Navigation Drawer*/
     private fun onStartRequestsPagerFragment()    {
         replaceFragment(RequestsPagerFragment())
@@ -219,6 +223,8 @@ class ChatActivity : AppCompatActivity(),
     private fun onStartFriendsFragment()    {
         replaceFragment(FriendsFragment())
     }
+
+
 
     override fun onBackPressed() {
         closeNavDrawer()

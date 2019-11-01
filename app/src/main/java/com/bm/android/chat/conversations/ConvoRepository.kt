@@ -22,6 +22,7 @@ class ConvoRepository {
     }
 
     /**************************************************************************
+     * (Used in NewConvoViewModel)
      * Get all documents in collection 'chat' where:
      * 1. field 'members' contains the uid of every person in RecipientList,
      * including the current user.
@@ -36,6 +37,29 @@ class ConvoRepository {
         }
         query = query.whereEqualTo("memberCount", recipientList.size)
         return query.get()
+    }
+
+    /***********************************************************************************
+     * Returns all message documents from subcollection 'messages' of the chat document
+     * whose id = chatId. Firestore does not support retrieving a subcollection along
+     * with the other fields of a document, so these two retrievals must be done
+     * separately (see getChatMetaData())
+     */
+    fun getChatMessages(chatId:String):Query  {
+        return chatCollection
+            .document(chatId)
+            .collection("messages")
+            .orderBy("timeSent")
+    }
+
+    /***********************************************************************
+     *Retrieves all fields of a chat document other than subcollection
+     * 'messages'
+     */
+    fun getChatMetaData(chatId: String):Task<DocumentSnapshot> {
+        return chatCollection
+            .document(chatId)
+            .get()
     }
 
     fun addChat(recipientList:ArrayList<Friend>):Task<DocumentReference>   {

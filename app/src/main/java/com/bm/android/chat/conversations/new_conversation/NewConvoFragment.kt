@@ -1,30 +1,37 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.new_conversation
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
+import com.bm.android.chat.conversations.ChatViewModel
 import com.bm.android.chat.friend_requests.models.Friend
 
-class NewConvoFragment : Fragment(), RecipientDialog.RecipientDialogInterface {
+class NewConvoFragment : Fragment(),
+    RecipientDialog.RecipientDialogInterface {
     interface NewConvoFragmentInterface {
         fun showProspectiveRecipientDialog()
+        fun onStartChatFragment()
     }
 
     private val mViewModel by lazy {
-        ViewModelProviders.of(activity!!).get(ConvoViewModel::class.java)
+        ViewModelProviders.of(activity!!).get(NewConvoViewModel::class.java)
     }
     private val mCallback by lazy {
         context as NewConvoFragmentInterface
     }
-    private val mViewHolderCallback = object :RecipientViewHolder.RecipientViewHolderInterface  {
+    private val mViewHolderCallback = object :
+        RecipientViewHolder.RecipientViewHolderInterface {
         override fun onClickDeleteBtn(friend:Friend) {
             mViewModel.recipientList.remove(friend)
             recipientList.adapter?.notifyDataSetChanged()
@@ -47,15 +54,37 @@ class NewConvoFragment : Fragment(), RecipientDialog.RecipientDialogInterface {
         }
 
         recipientList.layoutManager = LinearLayoutManager(activity)
-        recipientList.adapter = RecipientAdapter(mViewModel.recipientList, mViewHolderCallback)
+        recipientList.adapter = RecipientAdapter(
+            mViewModel.recipientList,
+            mViewHolderCallback
+        )
 
         sendMessageBtn.setOnClickListener {
             val messageInput = v.findViewById<EditText>(R.id.message_input)
             mViewModel.checkIfChatExists(messageInput.text.toString())
+            mViewModel.getNewConvoStatus().observe(this, Observer {
+
+                val result = it
+                if (result != null) {
+                    mViewModel.clearNewConvoStatus()
+                    if (result.status == "MESSAGE_ADDED") {
+                        val chatViewModel =
+                            ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
+                        //set the id of the chat thread to be displayed in ChatFragment
+                        chatViewModel.chatId = it.payload!!
+                        Log.d("chatLog", "ChatId = ${it.payload}")
+                        //clear recipientList
+                        mViewModel.recipientList.clear()
+                        //start ChatFragment
+                        mCallback.onStartChatFragment()
+                    } else if (result.status == "ERROR") {
+                        Toast.makeText(activity, it.payload, Toast.LENGTH_LONG).show()
+                    }
+                }
+            })
         }
         return v
     }
-
     //used in RecipientDialog
     override fun notifyRecipientListChanged() {
         recipientList.adapter?.notifyDataSetChanged()
