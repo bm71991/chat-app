@@ -38,7 +38,8 @@ class ChatActivity : AppCompatActivity(),
                      UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
                      EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
                      ConvosFragment.ConvosFragmentInterface,
-                     NewConvoFragment.NewConvoFragmentInterface {
+                     NewConvoFragment.NewConvoFragmentInterface,
+                     ChatFragment.ChatFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -206,6 +207,11 @@ class ChatActivity : AppCompatActivity(),
     override fun onStartChatFragment()   {
         replaceFragment(ChatFragment())
     }
+
+    override fun changeActionbarTitle(title: String) {
+        supportActionBar?.title = title
+    }
+
 
     /*Used in Navigation Drawer*/
     private fun onStartRequestsPagerFragment()    {

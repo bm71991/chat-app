@@ -1,5 +1,6 @@
 package com.bm.android.chat.friend_search
 
+import com.bm.android.chat.DbConstants
 import com.bm.android.chat.user_access.models.ReceivedFriendRequest
 import com.bm.android.chat.user_access.models.SentFriendRequest
 import com.google.android.gms.tasks.Task
@@ -55,6 +56,13 @@ class FriendSearchRepository   {
             .document(FirebaseAuth.getInstance().uid!!)
             .collection("receivedRequests")
             .whereEqualTo("senderUid", friendUid)
+            .get()
+    }
+
+    fun getFriends(userId:String):Task<QuerySnapshot>   {
+        return db.collection(FRIENDS_COLLECTION)
+            .document(userId)
+            .collection(DbConstants.CURRENT_FRIENDS)
             .get()
     }
 }

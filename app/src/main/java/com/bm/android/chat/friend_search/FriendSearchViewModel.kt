@@ -68,7 +68,6 @@ class FriendSearchViewModel : ViewModel() {
     }
     //1.
     private fun checkIfSentRequest(prospectiveFriendId: String) {
-
         friendSearchRepo.checkIfSentRequest(prospectiveFriendId)
             .addOnSuccessListener {
                 if (it.isEmpty)    {
@@ -79,23 +78,38 @@ class FriendSearchViewModel : ViewModel() {
             }
     }
     //2.
-    private fun checkIfReceivedRequest(
-                                       prospectiveFriendId: String) {
+    private fun checkIfReceivedRequest(prospectiveFriendId: String) {
         Log.d(TAG, "in checkIfReceivedRequest friend Id = $prospectiveFriendId")
         friendSearchRepo.checkIfReceivedRequest(prospectiveFriendId)
             .addOnSuccessListener {
                 if (it.isEmpty)    {
-                    //checkIfAlreadyFriends goes here
-                    usernameSearchStatus.value = OK_TO_DISPLAY
+                    checkIfAlreadyFriends(prospectiveFriendId)
                 } else {
                     usernameSearchStatus.value = REQUEST_ALREADY_RECEIVED
                 }
             }
     }
     //3.
-    private fun checkIfAlreadyFriends(friendInfo: FriendInfo,
-        prospectiveFriendId: String) {
-        //TODO
+    private fun checkIfAlreadyFriends(prospectiveFriendId: String) {
+        friendSearchRepo.getFriends(FirebaseAuth.getInstance().uid!!)
+            .addOnSuccessListener {
+                var alreadyFriends = false
+                val documents = it.documents
+                if (documents.isNotEmpty()) {
+                    var index = 0
+                    while (index < documents.size && !alreadyFriends)   {
+                        var docId = documents[index]["uid"]
+                        Log.d(TAG,"prospectiveFriendId = $prospectiveFriendId, docId = $docId")
+                        if (docId == prospectiveFriendId) alreadyFriends = true
+                        index++
+                    }
+                }
+                if (alreadyFriends) {
+                    usernameSearchStatus.value = ALREADY_FRIENDS
+                } else {
+                    usernameSearchStatus.value = OK_TO_DISPLAY
+                }
+            }
     }
 
     /*********************************************************
@@ -132,9 +146,6 @@ class FriendSearchViewModel : ViewModel() {
             }
     }
 
-//    fun getReceivedRequests():CollectionReference   {
-//        return friendSearchRepo.getReceivedRequests()
-//    }
     /******************************************************************************
      * String constants propagated to FriendSearchFragment by usernameSearchStatus
      */

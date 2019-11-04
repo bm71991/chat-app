@@ -1,13 +1,11 @@
 package com.bm.android.chat.conversations
 
-import android.util.Log
 import com.bm.android.chat.DbConstants
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.ChatMessage
 import com.bm.android.chat.friend_requests.models.Friend
 import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 
 class ConvoRepository {
@@ -32,7 +30,6 @@ class ConvoRepository {
         var query = chatCollection as Query
 
         for (recipient in recipientList)    {
-            Log.d("chatLog", "${recipient.uid}")
             query = query.whereEqualTo("members.${recipient.uid}", true)
         }
         query = query.whereEqualTo("memberCount", recipientList.size)
