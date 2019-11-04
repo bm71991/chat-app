@@ -86,4 +86,10 @@ class ConvoRepository {
                .collection(DbConstants.MESSAGE_COLLECTION)
                .add(ChatMessage(message, currentUserId, Timestamp.now()))
     }
+
+    fun getChatUsername(uid:String):Task<QuerySnapshot> {
+        return db.collection(DbConstants.USERS_COLLECTION)
+            .whereEqualTo("uid", uid)
+            .get()
+    }
 }

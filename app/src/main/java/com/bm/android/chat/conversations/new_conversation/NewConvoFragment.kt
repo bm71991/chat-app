@@ -14,7 +14,7 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
-import com.bm.android.chat.conversations.ChatViewModel
+import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.friend_requests.models.Friend
 
 class NewConvoFragment : Fragment(),

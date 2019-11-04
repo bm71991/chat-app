@@ -1,16 +1,20 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.conversation
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.ChatMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
+import com.google.firebase.auth.FirebaseAuth
 
 class ChatFragment: Fragment() {
     private lateinit var chatList:RecyclerView
@@ -34,17 +38,24 @@ class ChatFragment: Fragment() {
             .setQuery(query, ChatMessage::class.java)
             .build()
 
-        adapter = ChatListAdapter(options)
-
-        adapter.notifyDataSetChanged()
-        chatList.adapter = adapter
-
+        chatViewModel.getChatInfo()
+        chatViewModel.getUidMappingStatus().observe(this, Observer {
+            val result = it
+            if (result != null) {
+                chatViewModel.clearUidMappingStatus()
+                if (result.status == "LOADED") {
+                    val uidUsernameMap = result.payload as HashMap<String, String>
+                    //list users in taskbar
+                    adapter = ChatListAdapter(options, uidUsernameMap)
+                    adapter.startListening()
+                    adapter.notifyDataSetChanged()
+                    chatList.adapter = adapter
+                } else {
+                    Toast.makeText(activity, result.status,Toast.LENGTH_LONG).show()
+                }
+            }
+        })
         return v
-    }
-
-    override fun onStart() {
-        super.onStart()
-        adapter.startListening()
     }
 
     override fun onStop() {
