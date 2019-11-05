@@ -31,6 +31,7 @@ class ChatFragment: Fragment() {
 
     interface ChatFragmentInterface {
         fun changeActionbarTitle(title:String)
+        fun getUidUsernameMap():HashMap<String, String>
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -50,23 +51,11 @@ class ChatFragment: Fragment() {
             .setQuery(query, ChatMessage::class.java)
             .build()
 
-        chatViewModel.getChatInfo()
-        chatViewModel.getUidMappingStatus().observe(this, Observer {
-            val result = it
-            if (result != null) {
-                chatViewModel.clearUidMappingStatus()
-                if (result.status == "LOADED") {
-                    val uidUsernameMap = result.payload as HashMap<String, String>
-                    changeActionbarTitle(uidUsernameMap)
-                    adapter = ChatListAdapter(options, uidUsernameMap)
-                    adapter.startListening()
-                    adapter.notifyDataSetChanged()
-                    chatList.adapter = adapter
-                } else {
-                    Toast.makeText(activity, result.status,Toast.LENGTH_LONG).show()
-                }
-            }
-        })
+        changeActionbarTitle(mCallback.getUidUsernameMap())
+        adapter = ChatListAdapter(options, mCallback.getUidUsernameMap())
+        adapter.startListening()
+        adapter.notifyDataSetChanged()
+        chatList.adapter = adapter
 
         sendBtn.setOnClickListener {
             val messageText = messageInput.text.toString()

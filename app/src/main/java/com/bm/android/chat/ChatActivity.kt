@@ -12,10 +12,13 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.conversation.ChatFragment
 import com.bm.android.chat.conversations.ConvosFragment
 import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
+import com.bm.android.chat.conversations.new_conversation.NewConvoViewModel
 import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
@@ -39,7 +42,8 @@ class ChatActivity : AppCompatActivity(),
                      EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
                      ConvosFragment.ConvosFragmentInterface,
                      NewConvoFragment.NewConvoFragmentInterface,
-                     ChatFragment.ChatFragmentInterface {
+                     ChatFragment.ChatFragmentInterface,
+                     RecipientDialog.RecipientDialogCallback {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -51,6 +55,9 @@ class ChatActivity : AppCompatActivity(),
     private val toggle by lazy {
         ActionBarDrawerToggle(this, drawer_layout,toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+    }
+    private val chatActivityViewModel by lazy {
+        ViewModelProviders.of(this).get(ChatActivityViewModel::class.java)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -196,6 +203,26 @@ class ChatActivity : AppCompatActivity(),
         userTextView.text = mAuth.currentUser?.displayName
     }
 
+    override fun setMappings() {
+        chatActivityViewModel.getMappings()
+    }
+
+    override fun clearUidMappingStatus() {
+        chatActivityViewModel.clearUidMappingStatus()
+    }
+
+    override fun getUidMappingStatus():LiveData<String>  {
+        return chatActivityViewModel.getUidMappingStatus()
+    }
+
+    override fun getUidUsernameMap():HashMap<String, String>    {
+        return chatActivityViewModel.uidUsernameMap
+    }
+
+    fun getUsername(uid:String):String? {
+        return chatActivityViewModel.uidUsernameMap[uid]
+    }
+
     /*Used in NewConvoFragment*/
     override fun showProspectiveRecipientDialog()    {
         val recipientDialog = RecipientDialog()
@@ -295,7 +322,13 @@ class ChatActivity : AppCompatActivity(),
                 mAuth.signOut()
                 //Log out for Facebook
                 LoginManager.getInstance().logOut()
+                //clear all viewmodels
                 ViewModelStore().clear()
+
+
+                chatActivityViewModel.uidUsernameMap.clear()
+                Log.d("convosTag", "logged out: uidUsernameMap is empty: " +
+                        "${chatActivityViewModel.uidUsernameMap.isEmpty()}")
                 onStartLoginFragment()
             }
         }

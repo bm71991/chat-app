@@ -20,8 +20,18 @@ class RecipientDialog: DialogFragment() {
         ViewModelProviders.of(activity!!).get(NewConvoViewModel::class.java)
     }
 
+    //to update recipient list in NewConvoFragment
     interface RecipientDialogInterface {
         fun notifyRecipientListChanged()
+    }
+
+    //to get username map from ChatActivity
+    interface RecipientDialogCallback   {
+        fun getUidUsernameMap():HashMap<String, String>
+    }
+
+    private val mCallback by lazy {
+        context as RecipientDialogCallback
     }
     private lateinit var mRecyclerView:RecyclerView
     private lateinit var mAdapter: ProspectiveRecipientAdapter
@@ -44,7 +54,7 @@ class RecipientDialog: DialogFragment() {
 
         mRecyclerView = v.findViewById(R.id.friend_selection_list)
         mRecyclerView.layoutManager = LinearLayoutManager(activity)
-        mViewModel.getProspectiveRecipients()
+        mViewModel.getProspectiveRecipients(mCallback.getUidUsernameMap())
         showProgressBar()
         mViewModel.getProspectiveRecipsStatus().observe(this, Observer {
             val result = it

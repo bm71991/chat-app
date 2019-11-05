@@ -1,6 +1,7 @@
 package com.bm.android.chat.conversations.new_conversation
 
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,9 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.QueryDocumentSnapshot
 
 class NewConvoViewModel: ViewModel()   {
-    interface UpdateListInterface {
-        fun notifyRecipientListChange()
-    }
+
     val mConvoRepository = ConvoRepository()
 
     private val TAG = "convoTag"
@@ -44,7 +43,7 @@ class NewConvoViewModel: ViewModel()   {
      * 2. not already displayed in the NewConvoFragment recyclerview (contained in recipientList)
      * shown in RecipientDialog
      */
-    fun getProspectiveRecipients()   {
+    fun getProspectiveRecipients(uidUsernameMap:HashMap<String, String>)   {
         Log.d("friends", "CALLED")
         val auth = FirebaseAuth.getInstance()
         val userId = auth.uid!!
@@ -53,8 +52,9 @@ class NewConvoViewModel: ViewModel()   {
             .addOnSuccessListener {
                 for (document in it)    {
                     if (shouldBeAdded(document))    {
-                        prospectiveRecipients.add(Friend(document.get("uid") as String,
-                                                 document.get("username") as String))
+                        var addedUserId = document.get("uid") as String
+                        prospectiveRecipients.add(Friend(addedUserId,
+                                                 uidUsernameMap[addedUserId]!!))
                     }
                 }
                 this.prospectiveRecipients.addAll(prospectiveRecipients)
