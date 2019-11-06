@@ -39,6 +39,7 @@ class LoginFragment : Fragment() {
         fun onStartSignupFragment()
         fun onStartUsernameFragment()
         fun onStartConvosFragment()
+        fun changeActionbarTitle(title:String)
         fun disableNavDrawer()
     }
 
@@ -54,7 +55,7 @@ class LoginFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         mCallback.disableNavDrawer()
-
+        mCallback.changeActionbarTitle(getString(R.string.welcome_title))
 
         auth = FirebaseAuth.getInstance()
         val mViewModel = ViewModelProviders.of(activity!!).get(UserAccessViewModel::class.java)

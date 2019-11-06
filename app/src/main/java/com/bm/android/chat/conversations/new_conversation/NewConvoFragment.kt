@@ -22,6 +22,7 @@ class NewConvoFragment : Fragment(),
     interface NewConvoFragmentInterface {
         fun showProspectiveRecipientDialog()
         fun onStartChatFragment()
+        fun changeActionbarTitle(title:String)
     }
 
     private val mViewModel by lazy {
@@ -43,6 +44,7 @@ class NewConvoFragment : Fragment(),
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+        mCallback.changeActionbarTitle(getString(R.string.new_convo_title))
 
         val v = inflater.inflate(R.layout.fragment_new_convo, container, false)
         recipientList = v.findViewById(R.id.recipient_list)

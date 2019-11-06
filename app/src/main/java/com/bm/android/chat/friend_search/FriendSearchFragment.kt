@@ -18,13 +18,19 @@ class FriendSearchFragment : Fragment() {
     private val mViewModel by lazy {
         ViewModelProviders.of(activity!!).get(FriendSearchViewModel::class.java)
     }
+    interface FriendSearchInterface {
+        fun changeActionbarTitle(title:String)
+    }
     private lateinit var mSearchResultLayout:LinearLayout
     private lateinit var mProgressBar:ProgressBar
-
+    private val mCallback by lazy {
+        context as FriendSearchInterface
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+        mCallback.changeActionbarTitle(getString(R.string.friend_search_title))
         val v = inflater.inflate(R.layout.fragment_friend_search, container, false)
         val textInput = v.findViewById<EditText>(R.id.friend_search_input)
         val searchBtn = v.findViewById<Button>(R.id.friend_search_btn)

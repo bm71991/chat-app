@@ -15,13 +15,14 @@ class EmailSignupSuccessFragment: Fragment() {
 
     interface EmailSignupSuccessFragmentInterface {
         fun emailSuccessToLogin()
+        fun changeActionbarTitle(title:String)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.fragment_signup_success, container, false)
         val backToLoginButton = v.findViewById<Button>(R.id.back_to_login_button)
-
+        mCallback.changeActionbarTitle(getString(R.string.signup_success_title))
         backToLoginButton.setOnClickListener {
             mCallback.emailSuccessToLogin()
         }

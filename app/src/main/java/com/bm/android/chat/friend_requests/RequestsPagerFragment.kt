@@ -12,11 +12,17 @@ import com.bm.android.chat.R
 import com.google.android.material.tabs.TabLayout
 
 class RequestsPagerFragment : Fragment() {
+    interface RequestsPagerInterface  {
+        fun changeActionbarTitle(title:String)
+    }
+    private val mCallback by lazy   {
+        context as RequestsPagerInterface
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+        savedInstanceState: Bundle?): View? {
+        mCallback.changeActionbarTitle(getString(R.string.friend_requests_title))
         super.onCreateView(inflater, container, savedInstanceState)
         setHasOptionsMenu(false)
         val v = inflater.inflate(

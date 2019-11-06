@@ -23,6 +23,7 @@ class EmailSignupFragment : Fragment() {
 
     interface EmailSignupFragmentInterface  {
         fun onStartSignupSuccessFragment()
+        fun changeActionbarTitle(title:String)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -38,6 +39,7 @@ class EmailSignupFragment : Fragment() {
         mSignupLayout = v.findViewById(R.id.signup_layout)
         mProgressBar = v.findViewById(R.id.signup_progress_bar)
 
+        mCallback.changeActionbarTitle(getString(R.string.email_signup_title))
         signupButton.setOnClickListener {
             val password = passwordTextView.text.toString()
             val email = emailTextView.text.toString()

@@ -10,22 +10,16 @@ import com.firebase.ui.firestore.FirestoreRecyclerAdapter
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestoreException
-import kotlin.collections.HashMap
 
 
-class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>,
-                      val uidUsernameMap:HashMap<String, String>)
+class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
     : FirestoreRecyclerAdapter<ChatMessage, RecyclerView.ViewHolder>(options) {
     private val TAG = "adapterLog"
-    private val currentUserId = FirebaseAuth.getInstance().uid
-    private val otherUserCallback = object : OtherUserViewHolder.OtherUserInterface {
-        override fun getSenderName(uid: String): String? {
-            return uidUsernameMap[uid]
-        }
-    }
+    private val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+
 
     override fun getItemViewType(position: Int): Int {
-        return if (snapshots[position].sentBy == currentUserId)   {
+        return if (snapshots[position].sentBy == currentUsername)   {
             CURRENT_USER
         } else {
             OTHER_USER
@@ -39,7 +33,7 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>,
         } else {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.message, parent, false)
-            OtherUserViewHolder(view, otherUserCallback)
+            OtherUserViewHolder(view)
         }
     }
 

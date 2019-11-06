@@ -7,4 +7,5 @@ package com.bm.android.chat.conversations.models
  * have querying capabilities such as Hashmap.length
  * at the moment.
  */
-data class Chat(var members:HashMap<String, Boolean> = HashMap(), var memberCount:Int = 0)
+data class Chat(var members:HashMap<String, Boolean> = HashMap(),
+                var memberCount:Int = 0)

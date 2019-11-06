@@ -26,6 +26,7 @@ class UsernameFragment : Fragment() {
 
     interface UsernameFragmentInterface {
         fun onStartUsernameRegisteredFragment()
+        fun changeActionbarTitle(title:String)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -40,6 +41,7 @@ class UsernameFragment : Fragment() {
         mProgressBar = v.findViewById(R.id.username_progress_bar)
         mUsernameLayout = v.findViewById(R.id.username_layout)
 
+        mCallback.changeActionbarTitle(getString(R.string.create_username_title))
         changeUsernameBtn.setOnClickListener {
             val username = newUsernameEditText.text.toString()
             showProgressBar()

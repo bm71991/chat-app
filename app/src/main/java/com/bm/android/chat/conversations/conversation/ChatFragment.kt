@@ -1,7 +1,6 @@
 package com.bm.android.chat.conversations.conversation
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +16,6 @@ import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.ChatMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
-import java.lang.StringBuilder
 
 class ChatFragment: Fragment() {
     private lateinit var chatList:RecyclerView
@@ -31,7 +29,6 @@ class ChatFragment: Fragment() {
 
     interface ChatFragmentInterface {
         fun changeActionbarTitle(title:String)
-        fun getUidUsernameMap():HashMap<String, String>
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -51,11 +48,22 @@ class ChatFragment: Fragment() {
             .setQuery(query, ChatMessage::class.java)
             .build()
 
-        changeActionbarTitle(mCallback.getUidUsernameMap())
-        adapter = ChatListAdapter(options, mCallback.getUidUsernameMap())
-        adapter.startListening()
-        adapter.notifyDataSetChanged()
-        chatList.adapter = adapter
+        chatViewModel.getChatInfo()
+        chatViewModel.getChatStatus().observe(this, Observer {
+            val result = it
+            if (result != null) {
+                chatViewModel.clearChatStatus()
+                if (result == "LOADED") {
+                    changeActionbarTitle(chatViewModel.getUsernames() as ArrayList<String>)
+                    adapter = ChatListAdapter(options)
+                    adapter.startListening()
+                    adapter.notifyDataSetChanged()
+                    chatList.adapter = adapter
+                } else {
+                    Toast.makeText(activity, result,Toast.LENGTH_LONG).show()
+                }
+            }
+        })
 
         sendBtn.setOnClickListener {
             val messageText = messageInput.text.toString()
@@ -71,13 +79,16 @@ class ChatFragment: Fragment() {
     override fun onStop() {
         super.onStop()
         adapter.stopListening()
+        chatViewModel.chatData = null
+        chatViewModel.chatId = ""
     }
 
-    private fun changeActionbarTitle(uidUsernameMap:HashMap<String, String>) {
-        val usernames = uidUsernameMap.values
-        val currentUsername = FirebaseAuth.getInstance().currentUser?.displayName
-        if (usernames.contains(currentUsername)) usernames.remove(currentUsername)
-        val title = usernames.joinToString()
-        mCallback.changeActionbarTitle(title)
+    private fun changeActionbarTitle(usernames:ArrayList<String>?) {
+        if (!usernames.isNullOrEmpty()) {
+            val currentUsername = FirebaseAuth.getInstance().currentUser?.displayName
+            if (usernames.contains(currentUsername)) usernames.remove(currentUsername)
+            val title = usernames.joinToString()
+            mCallback.changeActionbarTitle(title)
+        }
     }
 }

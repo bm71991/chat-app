@@ -1,11 +1,13 @@
 package com.bm.android.chat.conversations
 
+import android.util.Log
 import com.bm.android.chat.DbConstants
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.ChatMessage
 import com.bm.android.chat.friend_requests.models.Friend
 import com.google.android.gms.tasks.Task
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.*
 
 class ConvoRepository {
@@ -30,7 +32,7 @@ class ConvoRepository {
         var query = chatCollection as Query
 
         for (recipient in recipientList)    {
-            query = query.whereEqualTo("members.${recipient.uid}", true)
+            query = query.whereEqualTo("members.${recipient.username}", true)
         }
         query = query.whereEqualTo("memberCount", recipientList.size)
         return query.get()
@@ -60,33 +62,45 @@ class ConvoRepository {
     }
 
     fun addChat(recipientList:ArrayList<Friend>):Task<DocumentReference>   {
-        val members = addMembersToHashMap(recipientList)
+        val members = addMembersToLookupHashMap(recipientList)
         val newChat = Chat(members, members.size)
         return chatCollection.add(newChat)
     }
 
-    private fun addMembersToHashMap(recipientList:ArrayList<Friend>):HashMap<String, Boolean>   {
+    private fun addMembersToLookupHashMap(recipientList:ArrayList<Friend>):HashMap<String, Boolean>   {
         val members = HashMap<String, Boolean>()
         for (recipient in recipientList)    {
-            members[recipient.uid] = true
+            members[recipient.username] = true
         }
         return members
     }
+
 
     /****************************************************************
      * Adds ChatMessage document to the subcollection of a specified
      * Chat document
      */
-    fun addMessage(chatId:String, message:String, currentUserId:String):Task<DocumentReference>  {
+    fun addMessage(chatId:String, message:String, currentUsername:String):Task<DocumentReference>  {
         return chatCollection
                .document(chatId)
                .collection(DbConstants.MESSAGE_COLLECTION)
-               .add(ChatMessage(message, currentUserId, Timestamp.now()))
+               .add(ChatMessage(message, currentUsername, Timestamp.now()))
     }
 
-    fun getChatUsername(uid:String):Task<QuerySnapshot> {
-        return db.collection(DbConstants.USERS_COLLECTION)
-            .whereEqualTo("uid", uid)
-            .get()
+//    fun getChatUsername(uid:String):Task<QuerySnapshot> {
+//        return db.collection(DbConstants.USERS_COLLECTION)
+//            .whereEqualTo("uid", uid)
+//            .get()
+//    }
+
+    /***************************************************
+     * Get all chat documents for which the current user
+     * is a member
+     */
+    fun getChats():Query  {
+        val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+        Log.d("convosTest", "current username = $currentUsername")
+        return chatCollection
+            .whereEqualTo("members.${currentUsername}", true)
     }
 }
