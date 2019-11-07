@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.convo_list
 
 
 import androidx.lifecycle.ViewModel

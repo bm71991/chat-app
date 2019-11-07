@@ -103,4 +103,16 @@ class ConvoRepository {
         return chatCollection
             .whereEqualTo("members.${currentUsername}", true)
     }
+
+
+    /********************************************
+     * updates the lastMessage field of a chat
+     * object. Used in ConvosFragment to set
+     * the last message of a chat item
+     */
+    fun setLastMessage(message:String, timeSent:Timestamp, chatId:String):Task<Void>  {
+        return chatCollection
+            .document(chatId)
+            .update("lastMessage", hashMapOf("message" to message, "timeSent" to timeSent))
+    }
 }

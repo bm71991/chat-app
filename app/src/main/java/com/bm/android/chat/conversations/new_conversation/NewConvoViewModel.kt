@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.bm.android.chat.conversations.ConvoRepository
 import com.bm.android.chat.conversations.models.DataLoading
 import com.bm.android.chat.friend_requests.models.Friend
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.QueryDocumentSnapshot
 
@@ -131,6 +132,16 @@ class NewConvoViewModel: ViewModel()   {
     private fun addMessage(chatId:String, message:String)    {
         mConvoRepository.addMessage(chatId, message,
             FirebaseAuth.getInstance().currentUser!!.displayName!!)
+            .addOnSuccessListener {
+                setLastMessage(message, chatId)
+            }
+            .addOnFailureListener {
+                newConvoStatus.value = DataLoading("ERROR", it.toString())
+            }
+    }
+
+    private fun setLastMessage(message:String, chatId:String)   {
+        convoRepository.setLastMessage(message, Timestamp.now(), chatId)
             .addOnSuccessListener {
                 newConvoStatus.value = DataLoading("MESSAGE_ADDED", chatId)
             }

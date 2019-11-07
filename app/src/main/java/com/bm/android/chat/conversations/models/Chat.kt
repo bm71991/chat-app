@@ -8,4 +8,5 @@ package com.bm.android.chat.conversations.models
  * at the moment.
  */
 data class Chat(var members:HashMap<String, Boolean> = HashMap(),
-                var memberCount:Int = 0)
+                var memberCount:Int = 0,
+                var lastMessage:LastMessage = LastMessage())

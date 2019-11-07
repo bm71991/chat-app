@@ -16,12 +16,16 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
     : FirestoreRecyclerAdapter<ChatMessage, RecyclerView.ViewHolder>(options) {
     private val TAG = "adapterLog"
     private val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
-
+    private var lastSender = ""
+    private var sameSenderAsLast = false
 
     override fun getItemViewType(position: Int): Int {
-        return if (snapshots[position].sentBy == currentUsername)   {
+        val currentSender = snapshots[position].sentBy
+        return if (currentSender == currentUsername)   {
             CURRENT_USER
         } else {
+            sameSenderAsLast = (currentSender == lastSender)
+            lastSender = currentSender
             OTHER_USER
         }
     }
@@ -33,7 +37,7 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
         } else {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.message, parent, false)
-            OtherUserViewHolder(view)
+            OtherUserViewHolder(view,sameSenderAsLast)
         }
     }
 

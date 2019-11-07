@@ -1,11 +1,11 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.convo_list
 
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.Chat
+import com.bm.android.chat.conversations.models.LastMessage
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,6 +28,10 @@ class ChatViewHolder(itemView:View, val chatItemCallback:
         itemView.setOnClickListener {
             chatItemCallback.onClickConvo(memberList, position)
         }
+
+        val date = chat.lastMessage.timeSent.toDate()
+        dateView.text = getDateString(date)
+        lastMessage.text = chat.lastMessage.message
     }
 
     private fun getMembersString(chatMembers:HashMap<String, Boolean>):String   {

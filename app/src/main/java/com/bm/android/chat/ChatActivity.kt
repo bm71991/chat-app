@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.conversation.ChatFragment
-import com.bm.android.chat.conversations.ConvosFragment
+import com.bm.android.chat.conversations.convo_list.ConvosFragment
 import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
 import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment

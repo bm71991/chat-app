@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.convo_list
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.models.Chat
-import com.couchbase.lite.AbstractReplicator
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import kotlinx.android.synthetic.main.fragment_convos.*
 import java.util.ArrayList
@@ -37,7 +36,7 @@ class ConvosFragment : Fragment() {
     private val mViewModel by lazy {
         ViewModelProviders.of(activity!!).get(ConvosViewModel::class.java)
     }
-    private lateinit var adapter:ConvosAdapter
+    private lateinit var adapter: ConvosAdapter
     private val chatItemCallback = object: ConvosAdapter.ConvoAdapterInterface   {
         override fun onClickConvo(members: ArrayList<String>, position:Int) {
             showProgressBar()
@@ -64,7 +63,8 @@ class ConvosFragment : Fragment() {
 
         val convoList = v.findViewById<RecyclerView>(R.id.convo_list)
         convoList.layoutManager = LinearLayoutManager(activity)
-        adapter = ConvosAdapter(options, chatItemCallback)
+        adapter =
+            ConvosAdapter(options, chatItemCallback)
         adapter.notifyDataSetChanged()
         convoList.adapter = adapter
 

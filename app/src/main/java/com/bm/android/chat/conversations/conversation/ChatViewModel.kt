@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.bm.android.chat.conversations.ConvoRepository
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.DataLoading
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.Query
 
@@ -46,8 +47,18 @@ class ChatViewModel: ViewModel() {
     fun addChatMessage(message:String)   {
         convoRepository.addMessage(chatId, message,
             FirebaseAuth.getInstance().currentUser!!.displayName!!)
+            .addOnSuccessListener {
+                setLastMessage(message, chatId)
+            }
             .addOnFailureListener {
                 Log.d("chatTest", "error: $it")
+            }
+    }
+
+    private fun setLastMessage(message:String, chatId:String)   {
+        convoRepository.setLastMessage(message, Timestamp.now(), chatId)
+            .addOnSuccessListener {
+
             }
     }
 }

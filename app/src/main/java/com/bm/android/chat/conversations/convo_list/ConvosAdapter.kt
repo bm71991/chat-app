@@ -1,4 +1,4 @@
-package com.bm.android.chat.conversations
+package com.bm.android.chat.conversations.convo_list
 
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,7 +10,8 @@ import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import java.util.ArrayList
 
 class ConvosAdapter(options:FirestoreRecyclerOptions<Chat>,
-        private val chatItemCallback:ConvoAdapterInterface)
+        private val chatItemCallback: ConvoAdapterInterface
+)
     : FirestoreRecyclerAdapter<Chat, ChatViewHolder>(options) {
     private val TAG = "adapterLog"
 
