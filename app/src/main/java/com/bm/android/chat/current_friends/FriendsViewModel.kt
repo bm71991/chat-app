@@ -1,5 +1,6 @@
 package com.bm.android.chat.current_friends
 
+import android.provider.ContactsContract
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,6 +15,7 @@ import com.google.firebase.firestore.Query
 
 class FriendsViewModel:ViewModel() {
     private val friendSearchRepo = FriendSearchRepository()
+    private val friendsRepository = FriendsRepository()
     /***************************************************
      * Keeps track of how many friends the user has
      * which start with a certain letter
@@ -33,6 +35,12 @@ class FriendsViewModel:ViewModel() {
     fun getNewFriendStatus():LiveData<FriendItem> = newFriendStatus
     fun clearNewFriendStatus()  {
         newFriendStatus.value = null
+    }
+
+    private val chatIdStatus = MutableLiveData<DataLoading<String>>()
+    fun getChatIdStatus():LiveData<DataLoading<String>> = chatIdStatus
+    fun clearChatIdStatus() {
+        chatIdStatus.value = null
     }
 
     fun getFriends()    {
@@ -79,6 +87,23 @@ class FriendsViewModel:ViewModel() {
                         }
                     }
                 }
+            }
+    }
+
+    fun getChatId(members:ArrayList<String>)   {
+        friendsRepository.getChat(members)
+            .addOnSuccessListener {
+                val documents = it.documents
+                if (documents.isNotEmpty())  {
+                    for (document in documents) {
+                        chatIdStatus.value = DataLoading("CHAT EXISTS", document.id)
+                    }
+                } else {
+                      chatIdStatus.value = DataLoading("CHAT DOES NOT EXIST", "")
+                }
+            }
+            .addOnFailureListener {
+                chatIdStatus.value = DataLoading("ERROR" , it.toString())
             }
     }
 }

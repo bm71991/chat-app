@@ -61,16 +61,16 @@ class ConvoRepository {
             .get()
     }
 
-    fun addChat(recipientList:ArrayList<Friend>):Task<DocumentReference>   {
-        val members = addMembersToLookupHashMap(recipientList)
+    fun addChat(nameList:ArrayList<String>):Task<DocumentReference>   {
+        val members = addMembersToLookupHashMap(nameList)
         val newChat = Chat(members, members.size)
         return chatCollection.add(newChat)
     }
 
-    private fun addMembersToLookupHashMap(recipientList:ArrayList<Friend>):HashMap<String, Boolean>   {
+    private fun addMembersToLookupHashMap(recipientList:ArrayList<String>):HashMap<String, Boolean>   {
         val members = HashMap<String, Boolean>()
         for (recipient in recipientList)    {
-            members[recipient.username] = true
+            members[recipient] = true
         }
         return members
     }

@@ -15,6 +15,7 @@ class ChatViewModel: ViewModel() {
     var chatId:String = ""
     private val convoRepository = ConvoRepository()
     private val chatStatus = MutableLiveData<String>()
+    val memberNames = HashSet<String>()
     var chatData:Chat? = null
 
     fun getChatStatus():LiveData<String> = chatStatus
@@ -23,8 +24,8 @@ class ChatViewModel: ViewModel() {
         chatStatus.value = null
     }
 
-    fun getUsernames():List<String>?  {
-        return chatData?.members?.keys?.toList()
+    fun getUsernames():HashSet<String>  {
+        return memberNames
     }
 
     fun getChatMessages(): Query {
@@ -33,32 +34,49 @@ class ChatViewModel: ViewModel() {
     }
 
     fun getChatInfo()   {
-        convoRepository.getChatMetaData(chatId)
-            .addOnSuccessListener {
-                if (it.exists())    {
-                    chatData = it.toObject(Chat::class.java)
-                    chatStatus.value = "LOADED"
-                } else {
-                    Log.d("uids", "chat document does not exist")
+        if (chatId.isNotBlank())    {
+            convoRepository.getChatMetaData(chatId)
+                .addOnSuccessListener {
+                    if (it.exists())    {
+                        chatData = it.toObject(Chat::class.java)
+                        memberNames.addAll(chatData!!.members.keys.toList())
+                        chatStatus.value = "LOADED"
+                    } else {
+                        chatStatus.value = "CHAT DOES NOT EXIST"
+                    }
                 }
-            }
+        }
     }
 
     fun addChatMessage(message:String)   {
-        convoRepository.addMessage(chatId, message,
-            FirebaseAuth.getInstance().currentUser!!.displayName!!)
-            .addOnSuccessListener {
-                setLastMessage(message, chatId)
-            }
-            .addOnFailureListener {
-                Log.d("chatTest", "error: $it")
-            }
+            convoRepository.addMessage(chatId, message,
+                FirebaseAuth.getInstance().currentUser!!.displayName!!)
+                .addOnSuccessListener {
+                    setLastMessage(message, chatId)
+                }
+                .addOnFailureListener {
+                    Log.d("chatTest", "error: $it")
+                }
     }
 
     private fun setLastMessage(message:String, chatId:String)   {
         convoRepository.setLastMessage(message, Timestamp.now(), chatId)
             .addOnSuccessListener {
-
             }
+    }
+
+    fun addChat(message:String)   {
+//        val memberList = arrayListOf<String>()
+//        for (name in memberNames) memberList.add(name)
+        convoRepository.addChat(getMemberNameArray())
+            .addOnSuccessListener {
+            chatId = it.id
+            addChatMessage(message)
+            getChatInfo()
+        }
+    }
+
+    fun getMemberNameArray():ArrayList<String>    {
+        return memberNames.toTypedArray().toCollection(ArrayList())
     }
 }

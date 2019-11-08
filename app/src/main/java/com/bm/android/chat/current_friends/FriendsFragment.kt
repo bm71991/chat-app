@@ -1,6 +1,5 @@
 package com.bm.android.chat.current_friends
 
-import android.net.sip.SipSession
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,12 +14,22 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Runnable
 import com.bm.android.chat.R
+import com.bm.android.chat.conversations.conversation.ChatViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 
 
 class FriendsFragment : Fragment() {
+    private val mCallback by lazy {
+        context as FriendsInterface
+    }
+    private val mViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(FriendsViewModel::class.java)
+    }
+
     interface FriendsInterface  {
         fun changeActionbarTitle(title:String)
+        fun onStartChatFragment()
     }
     interface FriendsListItem   {
         companion object    {
@@ -54,12 +63,28 @@ class FriendsFragment : Fragment() {
         }
     }
 
-    private val mCallback by lazy {
-        context as FriendsInterface
+    private val friendClickCallback = object : FriendViewHolder.FriendClickCallback {
+        override fun onClickFriendItem(friendUsername: String) {
+            val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+            val chatViewModel = ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
+            val memberNames = arrayListOf(currentUsername, friendUsername)
+            mViewModel.getChatId(memberNames)
+            mViewModel.getChatIdStatus().observe(this@FriendsFragment, Observer {
+                val result = it
+                if (result != null) {
+                    mViewModel.clearChatIdStatus()
+                    if (result.status == "ERROR")    {
+                        Log.d("errorTag", result.payload!!)
+                    } else {
+                        chatViewModel.chatId = result.payload!!
+                        chatViewModel.memberNames.addAll(memberNames)
+                        mCallback.onStartChatFragment()
+                    }
+                }
+            })
+        }
     }
-    private val mViewModel by lazy {
-        ViewModelProviders.of(activity!!).get(FriendsViewModel::class.java)
-    }
+
     private var adapter:FriendsListAdapter? = null
     private var newFriendListener:ListenerRegistration? = null
     private lateinit var friendsList:RecyclerView
@@ -78,7 +103,8 @@ class FriendsFragment : Fragment() {
                 mViewModel.clearFriendLoadingStatus()
                 if (result.status == "LOADED") {
                     friendsList.layoutManager = LinearLayoutManager(activity!!)
-                    adapter = FriendsListAdapter(it.payload!!, friendsListAdapterCallback)
+                    adapter = FriendsListAdapter(it.payload!!, friendsListAdapterCallback,
+                        friendClickCallback)
                     friendsList.adapter = adapter
                 } else  {
                     Toast.makeText(activity, it.status, Toast.LENGTH_LONG).show()

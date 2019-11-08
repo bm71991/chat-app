@@ -9,11 +9,14 @@ import com.bm.android.chat.R
 import com.bm.android.chat.current_friends.FriendsFragment.FriendsListItem
 
 class FriendsListAdapter(initialInput:List<FriendsListItem>,
-                         val mCallback:FriendsListAdapterInterface)
+                         val mCallback:FriendsListAdapterInterface,
+                         val friendClickCallback: FriendViewHolder.FriendClickCallback)
     :RecyclerView.Adapter<FriendsFragment.FriendItemViewHolder>() {
+
     interface FriendsListAdapterInterface    {
         fun checkIfNewFirstLetter(letter:String)
     }
+
     val dataset:SortedList<FriendsListItem>
 
     init {
@@ -65,7 +68,7 @@ class FriendsListAdapter(initialInput:List<FriendsListItem>,
         return if (viewType == FriendsListItem.TYPE_FRIEND) {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.friend_item, parent, false)
-                FriendViewHolder(view)
+                FriendViewHolder(view, friendClickCallback)
         } else {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.letter_item, parent, false)

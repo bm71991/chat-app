@@ -118,7 +118,13 @@ class NewConvoViewModel: ViewModel()   {
     }
 
     private fun addChat(message:String)   {
-        mConvoRepository.addChat(recipientList)
+        val nameList = ArrayList<String>()
+
+        for (recipient in recipientList)    {
+            nameList.add(recipient.username)
+        }
+
+        mConvoRepository.addChat(nameList)
             .addOnSuccessListener {
                 //get id of newly added doc
                 addMessage(it.id, message)

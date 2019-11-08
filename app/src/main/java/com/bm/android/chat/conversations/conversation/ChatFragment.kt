@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 class ChatFragment: Fragment() {
     private lateinit var chatList:RecyclerView
-    private lateinit var adapter: ChatListAdapter
+    private var adapter: ChatListAdapter? = null
     private val chatViewModel by lazy {
         ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
     }
@@ -34,6 +34,9 @@ class ChatFragment: Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
+        if (chatViewModel.memberNames.isNotEmpty()) {
+            changeActionbarTitle(chatViewModel.getMemberNameArray())
+        }
 
         val v =inflater.inflate(R.layout.fragment_chat, container, false)
         val sendBtn = v.findViewById<Button>(R.id.send_btn)
@@ -42,11 +45,6 @@ class ChatFragment: Fragment() {
 
         val layoutManager = LinearLayoutManager(activity)
         chatList.layoutManager = layoutManager
-        val query = chatViewModel.getChatMessages()
-
-        val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
-            .setQuery(query, ChatMessage::class.java)
-            .build()
 
         chatViewModel.getChatInfo()
         chatViewModel.getChatStatus().observe(this, Observer {
@@ -54,41 +52,64 @@ class ChatFragment: Fragment() {
             if (result != null) {
                 chatViewModel.clearChatStatus()
                 if (result == "LOADED") {
-                    changeActionbarTitle(chatViewModel.getUsernames() as ArrayList<String>)
-                    adapter = ChatListAdapter(options)
-                    adapter.startListening()
-                    adapter.notifyDataSetChanged()
-                    chatList.adapter = adapter
-                } else {
-                    Toast.makeText(activity, result,Toast.LENGTH_LONG).show()
+                    initializeAdapter()
+//                    changeActionbarTitle(chatViewModel.getUsernames() as ArrayList<String>)
+//                    adapter = ChatListAdapter(options)
+//                    adapter.startListening()
+//                    adapter.notifyDataSetChanged()
+//                    chatList.adapter = adapter
                 }
+//                else {
+//                    Toast.makeText(activity, result,Toast.LENGTH_LONG).show()
+//                }
             }
         })
 
         sendBtn.setOnClickListener {
             val messageText = messageInput.text.toString()
-            if (messageText.isNotBlank())   {
+            if (chatViewModel.chatId.isBlank()) {
+                chatViewModel.addChat(messageText)
+            } else {
                 chatViewModel.addChatMessage(messageText)
-                messageInput.text.clear()
             }
+            messageInput.text.clear()
         }
 
         return v
     }
 
-    override fun onStop() {
-        super.onStop()
-        adapter.stopListening()
+    override fun onDestroy() {
+        super.onDestroy()
+        adapter?.stopListening()
         chatViewModel.chatData = null
         chatViewModel.chatId = ""
+        chatViewModel.memberNames.clear()
     }
 
     private fun changeActionbarTitle(usernames:ArrayList<String>?) {
         if (!usernames.isNullOrEmpty()) {
+            val displayUsernames = ArrayList<String>()
             val currentUsername = FirebaseAuth.getInstance().currentUser?.displayName
-            if (usernames.contains(currentUsername)) usernames.remove(currentUsername)
-            val title = usernames.joinToString()
+
+            for (username in usernames) {
+                if (username != currentUsername) displayUsernames.add(username)
+            }
+
+            val title = displayUsernames.joinToString()
             mCallback.changeActionbarTitle(title)
         }
+    }
+
+    private fun initializeAdapter() {
+        val query = chatViewModel.getChatMessages()
+
+        val options = FirestoreRecyclerOptions.Builder<ChatMessage>()
+            .setQuery(query, ChatMessage::class.java)
+            .build()
+        changeActionbarTitle(chatViewModel.getMemberNameArray())
+        adapter = ChatListAdapter(options)
+        adapter?.startListening()
+        adapter?.notifyDataSetChanged()
+        chatList.adapter = adapter
     }
 }
