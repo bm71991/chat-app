@@ -1,5 +1,6 @@
 package com.bm.android.chat.conversations.conversation
 
+import android.os.Message
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 
 
 class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
-    : FirestoreRecyclerAdapter<ChatMessage, RecyclerView.ViewHolder>(options) {
+    : FirestoreRecyclerAdapter<ChatMessage, MessageViewHolder>(options) {
     private val TAG = "adapterLog"
     private val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
     private var lastSender = ""
@@ -29,7 +30,7 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
             OTHER_USER
         }
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         return if (viewType == CURRENT_USER)   {
             val view = LayoutInflater.from(parent.context)
                 .inflate(R.layout.current_user_message, parent, false)
@@ -41,9 +42,9 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int,
+    override fun onBindViewHolder(holder: MessageViewHolder, position: Int,
                                   model: ChatMessage) {
-        (holder as MessageViewHolder).bindData(model)
+        holder.bindData(model)
     }
 
     override fun onError(e: FirebaseFirestoreException) {

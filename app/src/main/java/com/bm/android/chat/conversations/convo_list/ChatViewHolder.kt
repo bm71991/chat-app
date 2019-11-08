@@ -8,12 +8,13 @@ import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.LastMessage
 import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 
-class ChatViewHolder(itemView:View, val chatItemCallback:
+class ChatViewHolder(itemView:View, private val chatItemCallback:
         ConvosAdapter.ConvoAdapterInterface) :RecyclerView.ViewHolder(itemView) {
     private val membersView = itemView.findViewById<TextView>(R.id.members)
     private val dateView = itemView.findViewById<TextView>(R.id.date)
@@ -37,11 +38,39 @@ class ChatViewHolder(itemView:View, val chatItemCallback:
     private fun getMembersString(chatMembers:HashMap<String, Boolean>):String   {
         val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
         chatMembers.remove(currentUsername)
-        return chatMembers.keys.joinToString()
+        val chatMembersStringBuilder =
+            StringBuilder(chatMembers.keys.joinToString()
+                          .take(19))
+
+        if (chatMembersStringBuilder.count() == 19) {
+            chatMembersStringBuilder.append("...(${chatMembers.size})")
+        }
+        return chatMembersStringBuilder.toString()
     }
 
     private fun getDateString(date: Date):String    {
-        val dateFormat = SimpleDateFormat("EEE, h:mm a")
+        //check to see whether the date is for today
+        val itemCalendarInstance = Calendar.getInstance()
+        val nowCalendarInstance = Calendar.getInstance()
+        itemCalendarInstance.time = date
+        nowCalendarInstance.time = Date()
+
+        /*returns true if the last message sent in the chat was sent today*/
+        val lastUpdateWasToday =
+            (itemCalendarInstance.get(Calendar.DAY_OF_YEAR) ==
+             nowCalendarInstance.get(Calendar.DAY_OF_YEAR))
+                    &&
+            (itemCalendarInstance.get(Calendar.YEAR) ==
+             nowCalendarInstance.get(Calendar.YEAR))
+
+        val dateFormat = if (lastUpdateWasToday) {
+            //show only the time
+             SimpleDateFormat("h:mm a")
+        } else {
+            //show only the month and day
+            SimpleDateFormat("MMM dd")
+        }
+
         return dateFormat.format(date)
     }
 }

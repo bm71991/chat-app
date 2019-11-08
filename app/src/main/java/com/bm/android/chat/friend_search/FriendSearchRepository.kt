@@ -65,4 +65,11 @@ class FriendSearchRepository   {
             .collection(DbConstants.CURRENT_FRIENDS)
             .get()
     }
+
+    fun getFriendsReference(userId:String):CollectionReference  {
+            return db.collection(FRIENDS_COLLECTION)
+                .document(userId)
+                .collection(DbConstants.CURRENT_FRIENDS)
+
+    }
 }

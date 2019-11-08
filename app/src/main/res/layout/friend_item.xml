@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/friend_item_layout"
+    android:visibility="visible"
+    android:padding="10dp">
+        <TextView
+            android:textSize="18sp"
+            android:id="@+id/friend"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FRIEND NAME"
+            android:layout_marginBottom="5dp" />
+</LinearLayout>

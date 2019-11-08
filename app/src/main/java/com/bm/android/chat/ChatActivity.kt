@@ -21,9 +21,11 @@ import com.bm.android.chat.current_friends.FriendsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
+import com.google.firebase.firestore.DocumentChange
 import com.facebook.login.LoginManager
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.twitter.sdk.android.core.Twitter
 import com.twitter.sdk.android.core.TwitterAuthConfig
 import com.twitter.sdk.android.core.TwitterConfig

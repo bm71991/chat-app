@@ -43,7 +43,7 @@ class RecipientDialog: DialogFragment() {
         progressBar = v.findViewById(R.id.progress_bar)
 
         mRecyclerView = v.findViewById(R.id.friend_selection_list)
-        mRecyclerView.layoutManager = LinearLayoutManager(activity)
+        mRecyclerView.layoutManager = LinearLayoutManager(activity!!)
         mViewModel.getProspectiveRecipients()
         showProgressBar()
         mViewModel.getProspectiveRecipsStatus().observe(this, Observer {
@@ -52,10 +52,7 @@ class RecipientDialog: DialogFragment() {
                 mViewModel.clearProspectiveRecipsStatus()
                 if (result.status == "LOADED") {
                     mAdapter =
-                        ProspectiveRecipientAdapter(
-                            result.payload!!,
-                            checkBoxListener
-                        )
+                        ProspectiveRecipientAdapter(result.payload!!, checkBoxListener)
                     mRecyclerView.adapter = mAdapter
                 } else {
                     Log.d("recips", "ERROR: $it")

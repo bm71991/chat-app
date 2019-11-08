@@ -87,23 +87,16 @@ class ConvoRepository {
                .add(ChatMessage(message, currentUsername, Timestamp.now()))
     }
 
-//    fun getChatUsername(uid:String):Task<QuerySnapshot> {
-//        return db.collection(DbConstants.USERS_COLLECTION)
-//            .whereEqualTo("uid", uid)
-//            .get()
-//    }
-
     /***************************************************
      * Get all chat documents for which the current user
      * is a member
      */
     fun getChats():Query  {
         val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
-        Log.d("convosTest", "current username = $currentUsername")
         return chatCollection
             .whereEqualTo("members.${currentUsername}", true)
+            .orderBy("lastMessage.timeSent", Query.Direction.DESCENDING)
     }
-
 
     /********************************************
      * updates the lastMessage field of a chat

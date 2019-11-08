@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.models.Chat
+import com.bm.android.chat.conversations.models.LastMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import kotlinx.android.synthetic.main.fragment_convos.*
 import java.util.ArrayList
@@ -44,6 +45,7 @@ class ConvosFragment : Fragment() {
             val chatViewModel = ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
             chatViewModel.chatId = chatId
             mCallback.onStartChatFragment()
+            hideProgressBar()
         }
     }
 
@@ -55,6 +57,8 @@ class ConvosFragment : Fragment() {
         mCallback.setUsernameInNavDrawer()
         mCallback.changeActionbarTitle(getString(R.string.convos_title))
         setHasOptionsMenu(true)
+
+
 
         val query = mViewModel.getChats()
         val options = FirestoreRecyclerOptions.Builder<Chat>()
