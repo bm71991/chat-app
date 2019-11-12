@@ -29,6 +29,7 @@ class ConvosFragment : Fragment() {
         fun setUsernameInNavDrawer()
         fun onStartChatFragment()
         fun changeActionbarTitle(title:String)
+        fun setNavDrawerItemCount(itemId:Int, newCount:Int)
     }
 
     private val mCallback by lazy {
@@ -56,9 +57,8 @@ class ConvosFragment : Fragment() {
         mCallback.showNavDrawer()
         mCallback.setUsernameInNavDrawer()
         mCallback.changeActionbarTitle(getString(R.string.convos_title))
+
         setHasOptionsMenu(true)
-
-
 
         val query = mViewModel.getChats()
         val options = FirestoreRecyclerOptions.Builder<Chat>()

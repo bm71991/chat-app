@@ -38,6 +38,16 @@ class ConvoRepository {
         return query.get()
     }
 
+    fun getChatQuery(recipientList: ArrayList<String>):Query  {
+        var query = chatCollection as Query
+
+        for (recipient in recipientList)    {
+            query = query.whereEqualTo("members.$recipient", true)
+        }
+        query = query.whereEqualTo("memberCount", recipientList.size)
+        return query
+    }
+
     /***********************************************************************************
      * Returns all message documents from subcollection 'messages' of the chat document
      * whose id = chatId. Firestore does not support retrieving a subcollection along

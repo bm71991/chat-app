@@ -16,6 +16,7 @@ import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.ChatMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.ListenerRegistration
 
 class ChatFragment: Fragment() {
     private lateinit var chatList:RecyclerView
@@ -26,6 +27,7 @@ class ChatFragment: Fragment() {
     private val mCallback by lazy {
         context as ChatFragmentInterface
     }
+    private var newChatListener:ListenerRegistration? = null
 
     interface ChatFragmentInterface {
         fun changeActionbarTitle(title:String)
@@ -36,6 +38,15 @@ class ChatFragment: Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         if (chatViewModel.memberNames.isNotEmpty()) {
             changeActionbarTitle(chatViewModel.getMemberNameArray())
+        }
+
+        /***********************************************************
+         * if the chatId is blank, set a listener which notifies the
+         * application whether a new chat is created with the
+         * member combination contained in chatViewModel.memberNames
+         */
+        if (chatViewModel.chatId.isBlank()) {
+            newChatListener = chatViewModel.setNewChatListener()
         }
 
         val v =inflater.inflate(R.layout.fragment_chat, container, false)
@@ -53,15 +64,8 @@ class ChatFragment: Fragment() {
                 chatViewModel.clearChatStatus()
                 if (result == "LOADED") {
                     initializeAdapter()
-//                    changeActionbarTitle(chatViewModel.getUsernames() as ArrayList<String>)
-//                    adapter = ChatListAdapter(options)
-//                    adapter.startListening()
-//                    adapter.notifyDataSetChanged()
-//                    chatList.adapter = adapter
+                    newChatListener?.remove()
                 }
-//                else {
-//                    Toast.makeText(activity, result,Toast.LENGTH_LONG).show()
-//                }
             }
         })
 

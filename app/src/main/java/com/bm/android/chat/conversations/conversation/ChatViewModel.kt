@@ -7,8 +7,12 @@ import androidx.lifecycle.ViewModel
 import com.bm.android.chat.conversations.ConvoRepository
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.DataLoading
+import com.bm.android.chat.current_friends.FriendItem
+import com.bm.android.chat.friend_requests.models.Friend
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 class ChatViewModel: ViewModel() {
@@ -66,8 +70,6 @@ class ChatViewModel: ViewModel() {
     }
 
     fun addChat(message:String)   {
-//        val memberList = arrayListOf<String>()
-//        for (name in memberNames) memberList.add(name)
         convoRepository.addChat(getMemberNameArray())
             .addOnSuccessListener {
             chatId = it.id
@@ -78,5 +80,32 @@ class ChatViewModel: ViewModel() {
 
     fun getMemberNameArray():ArrayList<String>    {
         return memberNames.toTypedArray().toCollection(ArrayList())
+    }
+
+    /**************************************************************
+     * For the edge case when the current user is preparing
+     * to start a chat with another user, but this other user
+     * sends a message (and creates a new chat document)
+     * before the current user does. chatId will be set to the chat
+     * document id that the other user has created.
+     */
+    fun setNewChatListener():ListenerRegistration    {
+        for (member in getMemberNameArray())    {
+            Log.d("listenerTest", "member: $member")
+        }
+        return convoRepository.getChatQuery(getMemberNameArray())
+            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                if (querySnapshot!!.documentChanges.isNotEmpty()) {
+                    for(documentChange in querySnapshot.documentChanges)    {
+                        when (documentChange.type)  {
+                            DocumentChange.Type.ADDED ->    {
+                                val newChatId = documentChange.document.id
+                                chatId = newChatId
+                                getChatInfo()
+                            }
+                        }
+                    }
+                }
+            }
     }
 }

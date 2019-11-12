@@ -66,7 +66,6 @@ class ChatActivity : AppCompatActivity(),
         val currentUser = mAuth.currentUser
 
         if (currentUser != null)  {
-            Log.i(TAG, "display name ChatActivity onCreate = ${currentUser.displayName}")
             if (currentUser.displayName.isNullOrEmpty())    {
                 addFirstFragment(UsernameFragment())
             } else {
@@ -201,6 +200,11 @@ class ChatActivity : AppCompatActivity(),
         userTextView.text = mAuth.currentUser?.displayName
     }
 
+    override fun setNavDrawerItemCount(itemId:Int, newCount:Int)    {
+        val v = nav_view.menu.findItem(itemId).actionView as TextView
+        v.text = newCount.toString()
+    }
+    
     /*Used in NewConvoFragment*/
     override fun showProspectiveRecipientDialog()    {
         val recipientDialog = RecipientDialog()
