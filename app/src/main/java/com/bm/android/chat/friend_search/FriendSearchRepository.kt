@@ -36,11 +36,19 @@ class FriendSearchRepository   {
      * user's document in collection 'friends'
      */
     fun updateReceivedFriendRequests(receivingUserId:String,
-                                     receivedFriendRequest: ReceivedFriendRequest):Task<DocumentReference>  {
-        return db.collection(FRIENDS_COLLECTION)
+                                     receivedFriendRequest: ReceivedFriendRequest):Task<Void> {
+        val receivedRequestRef = db.collection(FRIENDS_COLLECTION)
             .document(receivingUserId)
             .collection("receivedRequests")
-            .add(receivedFriendRequest)
+            .document()
+
+        val friendDocRef = db.collection(FRIENDS_COLLECTION)
+            .document(receivingUserId)
+
+        return db.runBatch { batch ->
+                batch.set(receivedRequestRef, receivedFriendRequest)
+                batch.update(friendDocRef, "newRequestCount", FieldValue.increment(1))
+        }
     }
 
     fun checkIfSentRequest(friendUid:String):Task<QuerySnapshot>    {

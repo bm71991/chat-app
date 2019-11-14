@@ -10,8 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.bm.android.chat.R
 import android.R.menu
-
-
+import com.bm.android.chat.friend_requests.FriendRequestsViewModel
 
 
 class FriendSearchFragment : Fragment() {

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.models.Chat
+import com.bm.android.chat.friend_requests.FriendRequestsViewModel
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import kotlinx.android.synthetic.main.fragment_convos.*
 import java.util.ArrayList
@@ -40,6 +41,9 @@ class ConvosFragment : Fragment() {
     }
     private val chatViewModel by lazy {
         ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
+    }
+    private val friendRequestsViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(FriendRequestsViewModel::class.java)
     }
     private lateinit var adapter: ConvosAdapter
     private val chatItemCallback = object: ConvosAdapter.ConvoAdapterInterface   {
@@ -68,6 +72,12 @@ class ConvosFragment : Fragment() {
             Log.d("newMessageListener", "listener = ${chatViewModel.newMessageListener}")
         } else {
             Log.d("newMessageListener", "newMessageListener is not being set")
+        }
+
+        if (friendRequestsViewModel.receivedRequestsListener == null &&
+                chatViewModel.getCurrentUsername() != null) {
+            friendRequestsViewModel.setReceivedRequestsListener()
+            Log.d("friendRequestsListener", "friendRequestsListener is being set")
         }
 
         setHasOptionsMenu(true)

@@ -7,7 +7,8 @@
         <item android:id="@+id/friend_search"
               android:title="@string/friend_search" />
         <item android:id="@+id/friend_requests"
-              android:title="@string/friend_requests" />
+              android:title="@string/friend_requests"
+              app:actionLayout="@layout/counter"/>
         <item android:id="@+id/current_friends"
               android:title="@string/current_friends" />
         <item android:id="@+id/conversations"

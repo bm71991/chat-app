@@ -60,6 +60,7 @@ class ChatFragment: Fragment() {
 
 
         chatList.layoutManager = getChatLayoutManager()
+        setScrollToBottomListener()
 
         chatViewModel.getChatInfo()
         chatViewModel.getChatStatus().observe(this, Observer {
@@ -81,58 +82,7 @@ class ChatFragment: Fragment() {
                 chatViewModel.addChatMessage(messageText)
             }
             messageInput.text.clear()
-
-            /************************************************************
-             * solution to have recyclerView scroll to bottom when item is
-             * added was obtained from:
-             * https://stackoverflow.com/questions/27016547/how-to-keep-recyclerview-always-scroll-bottom/36060470
-             */
-            fragmentRootView.viewTreeObserver
-                .addOnGlobalLayoutListener  {
-                    if (adapter != null)    {
-                        val heightDiff =
-                            fragmentRootView.rootView.height - fragmentRootView.height
-                        if (heightDiff > 100 && adapter!!.itemCount > 0) {
-                            chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
-                        }
-
-                    }
-                }
-//            var vto = fragmentRootView.getViewTreeObserver()
-//            var hasFired = false
-//
-//                vto.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
-//                    override fun onGlobalLayout() {
-//                        if (adapter != null && !hasFired)    {
-//                            val heightDiff =
-//                                fragmentRootView.rootView.height - fragmentRootView.height
-//                            if (heightDiff > 100 && adapter!!.itemCount > 0) {
-//                                chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
-//                                if (vto.isAlive)    {
-//                                    vto.removeOnGlobalLayoutListener(this)
-//                                }
-//                            }
-//                        } else vto.removeOnGlobalLayoutListener(this)
-//                    }
-//                })
-////            fragmentRootView.viewTreeObserver
-////                .addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
-////                    override fun onGlobalLayout() {
-////                        if (adapter != null)    {
-////                            val heightDiff =
-////                                fragmentRootView.rootView.height - fragmentRootView.height
-////                            if (heightDiff > 100 && adapter!!.itemCount > 0) {
-////                                chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
-////                            }
-////                            fragmentRootView.viewTreeObserver.removeOnGlobalLayoutListener(this)
-////                        }
-////                    }
-////                })
         }
-
-
-
-
         return v
     }
 
@@ -175,8 +125,24 @@ class ChatFragment: Fragment() {
     private fun getChatLayoutManager():LinearLayoutManager  {
         val layoutManager = LinearLayoutManager(activity)
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL)
-        layoutManager.setStackFromEnd(true)
-
         return layoutManager
+    }
+
+    private fun setScrollToBottomListener()    {
+        /************************************************************
+         * solution to have recyclerView scroll to bottom when item is
+         * added was obtained from:
+         * https://stackoverflow.com/questions/27016547/how-to-keep-recyclerview-always-scroll-bottom/36060470
+         */
+        fragmentRootView.viewTreeObserver
+            .addOnGlobalLayoutListener  {
+                if (adapter != null)    {
+                    val heightDiff =
+                        fragmentRootView.rootView.height - fragmentRootView.height
+                    if (heightDiff > 100 && adapter!!.itemCount > 0) {
+                        chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
+                    }
+                }
+            }
     }
 }

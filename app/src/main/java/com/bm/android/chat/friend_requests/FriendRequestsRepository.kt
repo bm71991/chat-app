@@ -5,10 +5,7 @@ import com.bm.android.chat.DbConstants
 import com.bm.android.chat.friend_requests.models.Friend
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.CollectionReference
-import com.google.firebase.firestore.DocumentReference
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.*
 
 class FriendRequestsRepository  {
     private val db = FirebaseFirestore.getInstance()
@@ -33,6 +30,24 @@ class FriendRequestsRepository  {
         return getSentFriendRequestCollection(senderId)
             .whereEqualTo("recipientUid", FirebaseAuth.getInstance().uid!!)
             .get()
+    }
+
+    fun getFriendsDocument(userId:String):DocumentReference  {
+        return db.collection(DbConstants.FRIENDS_COLLECTION)
+            .document(userId)
+    }
+
+    fun clearReceivedFriendRequestCount():Task<Void>   {
+        val currentUserId = FirebaseAuth.getInstance().uid!!
+        return db.collection("friends")
+            .document(currentUserId)
+            .update("newRequestCount", 0)
+    }
+
+    fun deleteSentRequest(senderId:String, docId:String):Task<Void>    {
+        return getSentFriendRequestCollection(senderId)
+            .document(docId)
+            .delete()
     }
 
     /*********************************************************

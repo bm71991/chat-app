@@ -40,6 +40,8 @@ class ReceivedRequestsFragment : Fragment() {
         val layoutManager = LinearLayoutManager(activity)
         requestsList?.layoutManager = layoutManager
 
+        mViewModel.removeReceivedRequestCount()
+
         val options = FirestoreRecyclerOptions.Builder<ReceivedFriendRequest>()
             .setQuery(query, ReceivedFriendRequest::class.java)
             .build()

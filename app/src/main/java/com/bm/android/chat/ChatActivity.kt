@@ -23,6 +23,7 @@ import com.bm.android.chat.conversations.convo_list.ConvosViewModel
 import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
 import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
+import com.bm.android.chat.friend_requests.FriendRequestsViewModel
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
@@ -58,6 +59,9 @@ class ChatActivity : AppCompatActivity(),
     private val chatViewModel by lazy {
         ViewModelProviders.of(this).get(ChatViewModel::class.java)
     }
+    private val friendRequestsViewModel by lazy {
+        ViewModelProviders.of(this).get(FriendRequestsViewModel::class.java)
+    }
     private lateinit var badgeDrawable:BadgeDrawerArrowDrawable
     private lateinit var mTwitterAuthConfig: TwitterAuthConfig
     private val mAuth = FirebaseAuth.getInstance()
@@ -76,6 +80,7 @@ class ChatActivity : AppCompatActivity(),
         configureNavigationView()
         val currentUser = mAuth.currentUser
         setNewChatMessageObserver()
+        setNewReceivedRequestsObserver()
 
 
         if (currentUser != null)  {
@@ -89,14 +94,28 @@ class ChatActivity : AppCompatActivity(),
         }
     }
 
+    private fun setNewReceivedRequestsObserver()    {
+        friendRequestsViewModel.getNewRequestCountStatus().observe(this, Observer {
+            val result = it
+            if (result != null) {
+                friendRequestsViewModel.clearNewRequestCountStatus()
+                if (result.status == "NEW REQUEST COUNT") {
+                   setNavDrawerItemCount(R.id.friend_requests, result.payload)
+                    setTotalNewMessages()
+                }
+            }
+        })
+    }
+
     private fun setNewChatMessageObserver() {
         chatViewModel.getNewChatMessageCountStatus().observe(this, Observer {
             val result = it
             if (result != null) {
                 chatViewModel.clearNewChatMessageCountStatus()
                 if (result.status == "NEW_CHAT_MESSAGE_COUNT") {
+                    Log.d("newMessageCount", "payload: ${result.payload}")
                     setNavDrawerItemCount(R.id.conversations, result.payload)
-                    setTotalNewMessages(result.payload)
+                    setTotalNewMessages()
                 }
             }
         })
@@ -320,16 +339,18 @@ class ChatActivity : AppCompatActivity(),
         Log.d(TAG, "nav drawer disabled")
     }
 
-    private fun setTotalNewMessages(newCount:Int?)  {
-        if (newCount != null)   {
-            if (newCount < 1) {
-                badgeDrawable.isEnabled = false
-            } else {
-                val textToDisplay = newCount.toString()
-                badgeDrawable.text = textToDisplay
-                badgeDrawable.isEnabled = true
-            }
+    private fun setTotalNewMessages()  {
+        val newCount = chatViewModel.newChatMessageCountTotal +
+                friendRequestsViewModel.newRequestCount
+        if (newCount < 1) {
+            badgeDrawable.isEnabled = false
+        } else {
+
+            val textToDisplay = newCount.toString()
+            badgeDrawable.text = textToDisplay
+            badgeDrawable.isEnabled = true
         }
+
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -351,6 +372,7 @@ class ChatActivity : AppCompatActivity(),
                 LoginManager.getInstance().logOut()
 
                 chatViewModel.clearNewMessageListenerAndCount()
+                friendRequestsViewModel.clearReceivedRequestsListenerAndCount()
                 ViewModelStore().clear()
                 onStartLoginFragment()
             }

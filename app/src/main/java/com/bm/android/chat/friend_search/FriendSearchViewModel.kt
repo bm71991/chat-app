@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProviders
+import com.bm.android.chat.friend_requests.FriendRequestsViewModel
 import com.bm.android.chat.user_access.models.FriendInfo
 import com.bm.android.chat.user_access.models.ReceivedFriendRequest
 import com.bm.android.chat.user_access.models.SentFriendRequest

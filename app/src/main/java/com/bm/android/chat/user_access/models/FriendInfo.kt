@@ -6,6 +6,4 @@ package com.bm.android.chat.user_access.models
  * in Firestore. Its id will be the uid of the newly created
  * user.
  */
-data class FriendInfo(var currentFriends:ArrayList<String> = arrayListOf(),
-                      var receivedRequests:ArrayList<ReceivedFriendRequest> = arrayListOf(),
-                      var sentRequests:ArrayList<SentFriendRequest> = arrayListOf())
+data class FriendInfo(var newRequestCount:Int = 0)

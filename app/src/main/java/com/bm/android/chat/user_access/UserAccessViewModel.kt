@@ -63,26 +63,24 @@ class UserAccessViewModel: ViewModel() {
     private fun setUsernameAsDisplayName(username:String, currentUser: FirebaseUser)    {
         mAccessRepository.setUsernameAsDisplayName(username, currentUser)
             .addOnSuccessListener {
-                Log.d(TAG, USERNAME_REGISTERED)
-                nameRegisterStatus.value = USERNAME_REGISTERED
-//                createFriendsDocument()
+                createFriendsDocument()
         }
             .addOnFailureListener   {
                 nameRegisterStatus.value = it.message.toString()
             }
     }
 
-//    //3.
-//    private fun createFriendsDocument() {
-//        mAccessRepository.createFriendDocument()
-//            .addOnSuccessListener {
-//                Log.d(TAG, "Friend document created")
-//
-//            }
-//            .addOnFailureListener   {
-//                nameRegisterStatus.value = it.message.toString()
-//            }
-//    }
+    //3.
+    private fun createFriendsDocument() {
+        mAccessRepository.createFriendDocument()
+            .addOnSuccessListener {
+                Log.d(TAG, "Friend document created")
+                nameRegisterStatus.value = USERNAME_REGISTERED
+            }
+            .addOnFailureListener   {
+                nameRegisterStatus.value = it.message.toString()
+            }
+    }
 
     fun signupUser(email:String, password:String)  {
         mAccessRepository.registerFirebaseUser(email, password, mAuth)
