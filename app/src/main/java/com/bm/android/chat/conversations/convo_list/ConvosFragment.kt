@@ -1,6 +1,7 @@
 package com.bm.android.chat.conversations.convo_list
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.models.Chat
-import com.bm.android.chat.conversations.models.LastMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import kotlinx.android.synthetic.main.fragment_convos.*
 import java.util.ArrayList
@@ -29,14 +29,17 @@ class ConvosFragment : Fragment() {
         fun setUsernameInNavDrawer()
         fun onStartChatFragment()
         fun changeActionbarTitle(title:String)
-        fun setNavDrawerItemCount(itemId:Int, newCount:Int)
+        fun setNavDrawerItemCount(itemId:Int, newCount:Int?)
     }
 
     private val mCallback by lazy {
         context as ConvosFragmentInterface
     }
-    private val mViewModel by lazy {
+    private val convosViewModel by lazy {
         ViewModelProviders.of(activity!!).get(ConvosViewModel::class.java)
+    }
+    private val chatViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(ChatViewModel::class.java)
     }
     private lateinit var adapter: ConvosAdapter
     private val chatItemCallback = object: ConvosAdapter.ConvoAdapterInterface   {
@@ -58,9 +61,18 @@ class ConvosFragment : Fragment() {
         mCallback.setUsernameInNavDrawer()
         mCallback.changeActionbarTitle(getString(R.string.convos_title))
 
+        if (chatViewModel.newMessageListener == null
+            && chatViewModel.getCurrentUsername() != null)   {
+            Log.d("newMessageListener", "newMessageListener ${chatViewModel}  is being set")
+            chatViewModel.setNewMessageListener()
+            Log.d("newMessageListener", "listener = ${chatViewModel.newMessageListener}")
+        } else {
+            Log.d("newMessageListener", "newMessageListener is not being set")
+        }
+
         setHasOptionsMenu(true)
 
-        val query = mViewModel.getChats()
+        val query = convosViewModel.getChats()
         val options = FirestoreRecyclerOptions.Builder<Chat>()
             .setQuery(query, Chat::class.java)
             .build()

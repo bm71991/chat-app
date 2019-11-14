@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -17,6 +16,7 @@ import com.bm.android.chat.conversations.models.ChatMessage
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
+import android.widget.LinearLayout
 
 class ChatFragment: Fragment() {
     private lateinit var chatList:RecyclerView
@@ -32,6 +32,7 @@ class ChatFragment: Fragment() {
     interface ChatFragmentInterface {
         fun changeActionbarTitle(title:String)
     }
+    private lateinit var fragmentRootView:LinearLayout
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -47,15 +48,18 @@ class ChatFragment: Fragment() {
          */
         if (chatViewModel.chatId.isBlank()) {
             newChatListener = chatViewModel.setNewChatListener()
+        } else {
+            chatViewModel.clearNewMessageCount()
         }
 
         val v =inflater.inflate(R.layout.fragment_chat, container, false)
         val sendBtn = v.findViewById<Button>(R.id.send_btn)
         val messageInput = v.findViewById<EditText>(R.id.message_input)
+        fragmentRootView = v.findViewById<LinearLayout>(R.id.chat_fragment)
         chatList = v.findViewById(R.id.chat_list)
 
-        val layoutManager = LinearLayoutManager(activity)
-        chatList.layoutManager = layoutManager
+
+        chatList.layoutManager = getChatLayoutManager()
 
         chatViewModel.getChatInfo()
         chatViewModel.getChatStatus().observe(this, Observer {
@@ -77,7 +81,57 @@ class ChatFragment: Fragment() {
                 chatViewModel.addChatMessage(messageText)
             }
             messageInput.text.clear()
+
+            /************************************************************
+             * solution to have recyclerView scroll to bottom when item is
+             * added was obtained from:
+             * https://stackoverflow.com/questions/27016547/how-to-keep-recyclerview-always-scroll-bottom/36060470
+             */
+            fragmentRootView.viewTreeObserver
+                .addOnGlobalLayoutListener  {
+                    if (adapter != null)    {
+                        val heightDiff =
+                            fragmentRootView.rootView.height - fragmentRootView.height
+                        if (heightDiff > 100 && adapter!!.itemCount > 0) {
+                            chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
+                        }
+
+                    }
+                }
+//            var vto = fragmentRootView.getViewTreeObserver()
+//            var hasFired = false
+//
+//                vto.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+//                    override fun onGlobalLayout() {
+//                        if (adapter != null && !hasFired)    {
+//                            val heightDiff =
+//                                fragmentRootView.rootView.height - fragmentRootView.height
+//                            if (heightDiff > 100 && adapter!!.itemCount > 0) {
+//                                chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
+//                                if (vto.isAlive)    {
+//                                    vto.removeOnGlobalLayoutListener(this)
+//                                }
+//                            }
+//                        } else vto.removeOnGlobalLayoutListener(this)
+//                    }
+//                })
+////            fragmentRootView.viewTreeObserver
+////                .addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+////                    override fun onGlobalLayout() {
+////                        if (adapter != null)    {
+////                            val heightDiff =
+////                                fragmentRootView.rootView.height - fragmentRootView.height
+////                            if (heightDiff > 100 && adapter!!.itemCount > 0) {
+////                                chatList.smoothScrollToPosition(adapter!!.itemCount - 1)
+////                            }
+////                            fragmentRootView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+////                        }
+////                    }
+////                })
         }
+
+
+
 
         return v
     }
@@ -88,6 +142,7 @@ class ChatFragment: Fragment() {
         chatViewModel.chatData = null
         chatViewModel.chatId = ""
         chatViewModel.memberNames.clear()
+
     }
 
     private fun changeActionbarTitle(usernames:ArrayList<String>?) {
@@ -115,5 +170,13 @@ class ChatFragment: Fragment() {
         adapter?.startListening()
         adapter?.notifyDataSetChanged()
         chatList.adapter = adapter
+    }
+
+    private fun getChatLayoutManager():LinearLayoutManager  {
+        val layoutManager = LinearLayoutManager(activity)
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL)
+        layoutManager.setStackFromEnd(true)
+
+        return layoutManager
     }
 }

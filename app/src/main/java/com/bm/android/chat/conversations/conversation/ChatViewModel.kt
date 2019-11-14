@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import com.bm.android.chat.conversations.ConvoRepository
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.DataLoading
-import com.bm.android.chat.current_friends.FriendItem
-import com.bm.android.chat.friend_requests.models.Friend
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentChange
@@ -21,9 +19,19 @@ class ChatViewModel: ViewModel() {
     private val chatStatus = MutableLiveData<String>()
     val memberNames = HashSet<String>()
     var chatData:Chat? = null
+    var newMessageListener:ListenerRegistration? = null
+
+    val newChatMessageCountMap = HashMap<String, Int>()
+    var newChatMessageCountTotal = 0
+    private val newChatMessageCountStatus = MutableLiveData<DataLoading<Int>>()
+
+    fun getNewChatMessageCountStatus():LiveData<DataLoading<Int>> = newChatMessageCountStatus
+    fun clearNewChatMessageCountStatus()    {
+        newChatMessageCountStatus.value = null
+    }
+
 
     fun getChatStatus():LiveData<String> = chatStatus
-
     fun clearChatStatus() {
         chatStatus.value = null
     }
@@ -66,16 +74,25 @@ class ChatViewModel: ViewModel() {
     private fun setLastMessage(message:String, chatId:String)   {
         convoRepository.setLastMessage(message, Timestamp.now(), chatId)
             .addOnSuccessListener {
+                convoRepository.incrementNewMessageCount(chatId, getMemberNameArray())
             }
     }
 
     fun addChat(message:String)   {
-        convoRepository.addChat(getMemberNameArray())
+        convoRepository.addChat(getMemberNameArray(), createNewMessageCountMap())
             .addOnSuccessListener {
             chatId = it.id
             addChatMessage(message)
             getChatInfo()
         }
+    }
+
+    private fun createNewMessageCountMap():HashMap<String, Int>    {
+        val countMap = HashMap<String, Int>()
+        for (member in memberNames)    {
+            countMap[member] = 0
+        }
+        return countMap
     }
 
     fun getMemberNameArray():ArrayList<String>    {
@@ -107,5 +124,79 @@ class ChatViewModel: ViewModel() {
                     }
                 }
             }
+    }
+
+    fun clearNewMessageCount() {
+        val currentUser = FirebaseAuth.getInstance().currentUser!!.displayName!!
+        convoRepository.clearNewMessageCount(chatId, currentUser)
+    }
+
+    fun setNewMessageListener():ListenerRegistration? {
+        val currentUser = getCurrentUsername()
+        if (currentUser == null) return null
+
+        newMessageListener = convoRepository.getAllChats(currentUser)
+            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                if (querySnapshot != null && querySnapshot.documentChanges.isNotEmpty()) {
+                    for(documentChange in querySnapshot.documentChanges) {
+                        var doc = documentChange.document
+                        var chatObject = doc.toObject(Chat::class.java)
+                        var newCountValue = chatObject.newMessageCount[currentUser]
+                        var chatId = doc.id
+
+                        when (documentChange.type)  {
+                            DocumentChange.Type.ADDED ->    {
+                                if (newCountValue != null) {
+                                    //add the message count to the previous number of new messages
+                                    newChatMessageCountTotal += newCountValue
+                                    newChatMessageCountStatus.value = DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
+                                    newChatMessageCountMap[chatId] = newCountValue
+                                    Log.d("newMessageListener", "ADDED: total new message count = $newChatMessageCountTotal")
+                                }
+                            }
+                            DocumentChange.Type.MODIFIED -> {
+                                var previousCountValue = newChatMessageCountMap[chatId]
+                                if (newCountValue != null && previousCountValue != null)    {
+                                    if (previousCountValue > newCountValue)  {
+                                        val difference = previousCountValue - newCountValue
+                                        newChatMessageCountTotal -= difference
+                                        Log.d("newMessageListener", "MODIFIED: DECREASED total new message count = $newChatMessageCountTotal")
+                                    }
+                                    /*ignore when previousCountValue == newCountValue
+                                      if messageCount has increased subtract the difference and add to
+                                      newChatMessageCountTotal
+                                     */
+                                    if (previousCountValue < newCountValue) {
+                                        val difference = newCountValue - previousCountValue
+                                        newChatMessageCountTotal += difference
+                                        Log.d("newMessageListener", "MODIFIED: INCREASED total new message count = $newChatMessageCountTotal")
+                                    }
+
+                                    if (previousCountValue != newCountValue) {
+                                        Log.d("newMessageListener", "previous Count != newCount $newChatMessageCountTotal")
+                                        newChatMessageCountStatus.value =
+                                            DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
+                                        newChatMessageCountMap[chatId] = newCountValue
+                                    }
+                                }
+                            }
+                        }
+                        Log.d("newMessageListener", "END: $chatId now = ${newChatMessageCountMap[chatId]}")
+                    }
+                }
+            }
+        return newMessageListener
+    }
+
+    fun clearNewMessageListenerAndCount()  {
+        Log.d("newMessageListener", "clearNewMessageListener is being called")
+        newMessageListener?.remove()
+        newMessageListener = null
+        newChatMessageCountMap.clear()
+        newChatMessageCountTotal = 0
+    }
+
+    fun getCurrentUsername():String?   {
+        return FirebaseAuth.getInstance().currentUser?.displayName
     }
 }

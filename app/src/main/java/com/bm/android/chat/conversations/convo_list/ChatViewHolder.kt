@@ -7,6 +7,8 @@ import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.Chat
 import com.bm.android.chat.conversations.models.LastMessage
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.*
@@ -19,12 +21,17 @@ class ChatViewHolder(itemView:View, private val chatItemCallback:
     private val membersView = itemView.findViewById<TextView>(R.id.members)
     private val dateView = itemView.findViewById<TextView>(R.id.date)
     private val lastMessage = itemView.findViewById<TextView>(R.id.last_message)
+    private val newMessageCount = itemView.findViewById<TextView>(R.id.new_message_count)
     private val chatId:String = ""
+    private val currentUser:String? = FirebaseAuth.getInstance().currentUser?.displayName
+    private var lastMessageListener:ListenerRegistration? = null
 
-
-    fun bindData(chat: Chat, position:Int)   {
+    fun bindData(chat: Chat, position:Int, chatId:String)   {
         membersView.text = getMembersString(chat.members)
         val memberList = chat.members.keys.toMutableList() as ArrayList<String>
+
+        //needed for when this viewholder is reused
+        removeListener()
 
         itemView.setOnClickListener {
             chatItemCallback.onClickConvo(memberList, position)
@@ -33,6 +40,22 @@ class ChatViewHolder(itemView:View, private val chatItemCallback:
         val date = chat.lastMessage.timeSent.toDate()
         dateView.text = getDateString(date)
         lastMessage.text = chat.lastMessage.message
+        setNewMessageCount(chat.newMessageCount[currentUser])
+
+        //abstract
+        lastMessageListener = FirebaseFirestore.getInstance()
+            .collection("chats")
+            .document(chatId)
+            .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+                val chatObject = documentSnapshot?.toObject(Chat::class.java)
+                lastMessage.text = chatObject?.lastMessage?.message
+                setNewMessageCount(chatObject?.newMessageCount?.get(currentUser))
+            }
+
+    }
+
+    private fun setNewMessageCount(newCount:Int?)    {
+        newMessageCount.text = if (newCount == null || newCount < 1) "" else newCount.toString()
     }
 
     private fun getMembersString(chatMembers:HashMap<String, Boolean>):String   {
@@ -46,6 +69,12 @@ class ChatViewHolder(itemView:View, private val chatItemCallback:
             chatMembersStringBuilder.append("...(${chatMembers.size})")
         }
         return chatMembersStringBuilder.toString()
+    }
+
+
+    fun removeListener()    {
+        lastMessageListener?.remove()
+        lastMessageListener = null
     }
 
     private fun getDateString(date: Date):String    {

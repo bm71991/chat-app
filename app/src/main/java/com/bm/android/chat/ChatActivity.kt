@@ -7,14 +7,19 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.conversation.ChatFragment
+import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.convo_list.ConvosFragment
+import com.bm.android.chat.conversations.convo_list.ConvosViewModel
 import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
 import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
@@ -50,9 +55,15 @@ class ChatActivity : AppCompatActivity(),
         supportFragmentManager
     }
     private val FIRST_FRAGMENT = "loginFragment"
+    private val chatViewModel by lazy {
+        ViewModelProviders.of(this).get(ChatViewModel::class.java)
+    }
+    private lateinit var badgeDrawable:BadgeDrawerArrowDrawable
     private lateinit var mTwitterAuthConfig: TwitterAuthConfig
     private val mAuth = FirebaseAuth.getInstance()
     private val CONVO_TAG = "convoTag"
+
+
     private val toggle by lazy {
         ActionBarDrawerToggle(this, drawer_layout,toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -64,6 +75,8 @@ class ChatActivity : AppCompatActivity(),
         setContentView(R.layout.fragment_container)
         configureNavigationView()
         val currentUser = mAuth.currentUser
+        setNewChatMessageObserver()
+
 
         if (currentUser != null)  {
             if (currentUser.displayName.isNullOrEmpty())    {
@@ -74,6 +87,19 @@ class ChatActivity : AppCompatActivity(),
         } else {
             addFirstFragment(LoginFragment())
         }
+    }
+
+    private fun setNewChatMessageObserver() {
+        chatViewModel.getNewChatMessageCountStatus().observe(this, Observer {
+            val result = it
+            if (result != null) {
+                chatViewModel.clearNewChatMessageCountStatus()
+                if (result.status == "NEW_CHAT_MESSAGE_COUNT") {
+                    setNavDrawerItemCount(R.id.conversations, result.payload)
+                    setTotalNewMessages(result.payload)
+                }
+            }
+        })
     }
 
 
@@ -200,11 +226,14 @@ class ChatActivity : AppCompatActivity(),
         userTextView.text = mAuth.currentUser?.displayName
     }
 
-    override fun setNavDrawerItemCount(itemId:Int, newCount:Int)    {
-        val v = nav_view.menu.findItem(itemId).actionView as TextView
-        v.text = newCount.toString()
+    override fun setNavDrawerItemCount(itemId:Int, newCount:Int?)    {
+        if (newCount != null)   {
+            val drawerText = if (newCount == 0) "" else newCount.toString()
+            val v = nav_view.menu.findItem(itemId).actionView as TextView
+            v.text = drawerText
+        }
     }
-    
+
     /*Used in NewConvoFragment*/
     override fun showProspectiveRecipientDialog()    {
         val recipientDialog = RecipientDialog()
@@ -238,8 +267,6 @@ class ChatActivity : AppCompatActivity(),
     private fun onStartFriendsFragment()    {
         replaceFragment(FriendsFragment())
     }
-
-
 
     override fun onBackPressed() {
         closeNavDrawer()
@@ -282,9 +309,27 @@ class ChatActivity : AppCompatActivity(),
     private fun configureNavigationView()   {
         setSupportActionBar(toolbar)
         nav_view.setNavigationItemSelectedListener(this)
+
         drawer_layout.addDrawerListener(toggle)
+        badgeDrawable = BadgeDrawerArrowDrawable(supportActionBar?.themedContext!!)
         toggle.syncState()
+
+        toggle.drawerArrowDrawable = badgeDrawable
+        badgeDrawable.isEnabled = false
+
         Log.d(TAG, "nav drawer disabled")
+    }
+
+    private fun setTotalNewMessages(newCount:Int?)  {
+        if (newCount != null)   {
+            if (newCount < 1) {
+                badgeDrawable.isEnabled = false
+            } else {
+                val textToDisplay = newCount.toString()
+                badgeDrawable.text = textToDisplay
+                badgeDrawable.isEnabled = true
+            }
+        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -305,6 +350,7 @@ class ChatActivity : AppCompatActivity(),
                 //Log out for Facebook
                 LoginManager.getInstance().logOut()
 
+                chatViewModel.clearNewMessageListenerAndCount()
                 ViewModelStore().clear()
                 onStartLoginFragment()
             }

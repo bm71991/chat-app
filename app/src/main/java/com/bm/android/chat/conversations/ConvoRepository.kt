@@ -71,9 +71,14 @@ class ConvoRepository {
             .get()
     }
 
-    fun addChat(nameList:ArrayList<String>):Task<DocumentReference>   {
+    fun getAllChats(username:String):Query    {
+        return chatCollection
+            .whereEqualTo("members.$username", true)
+    }
+
+    fun addChat(nameList:ArrayList<String>, newMessageCountMap:HashMap<String, Int>):Task<DocumentReference>   {
         val members = addMembersToLookupHashMap(nameList)
-        val newChat = Chat(members, members.size)
+        val newChat = Chat(members, members.size, newMessageCountMap)
         return chatCollection.add(newChat)
     }
 
@@ -99,10 +104,10 @@ class ConvoRepository {
 
     /***************************************************
      * Get all chat documents for which the current user
-     * is a member
+     * is a member EDITED
      */
     fun getChats():Query  {
-        val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+        val currentUsername = FirebaseAuth.getInstance().currentUser?.displayName
         return chatCollection
             .whereEqualTo("members.${currentUsername}", true)
             .orderBy("lastMessage.timeSent", Query.Direction.DESCENDING)
@@ -117,5 +122,37 @@ class ConvoRepository {
         return chatCollection
             .document(chatId)
             .update("lastMessage", hashMapOf("message" to message, "timeSent" to timeSent))
+    }
+
+    fun createNewMessageCount(chatId:String, messageCountMap:HashMap<String, Int>):Task<Void>   {
+        return db.collection(DbConstants.CHATS_COLLECTION)
+            .document(chatId)
+            .update("newMessageCount", messageCountMap)
+    }
+
+
+    fun incrementNewMessageCount(chatId:String, usernames:ArrayList<String>):Task<Void>  {
+        val chatRef = db.collection(DbConstants.CHATS_COLLECTION).document(chatId)
+        val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+        return db.runBatch { batch ->
+            for (username in usernames) {
+                if (username != currentUsername)    {
+                    batch.update(chatRef, "newMessageCount.$username", FieldValue.increment(1))
+                }
+            }
+        }
+    }
+
+    fun clearNewMessageCount(chatId:String, username:String):Task<Void>   {
+        return db.collection(DbConstants.CHATS_COLLECTION)
+            .document(chatId)
+            .update("newMessageCount.$username", 0)
+    }
+
+    //EDIT
+    fun getNewMessageCount():Query {
+        val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
+        return db.collection(("newMessageCount"))
+            .whereEqualTo("username", currentUsername)
     }
 }

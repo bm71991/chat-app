@@ -124,7 +124,7 @@ class NewConvoViewModel: ViewModel()   {
             nameList.add(recipient.username)
         }
 
-        mConvoRepository.addChat(nameList)
+        mConvoRepository.addChat(nameList, createNewMessageCount())
             .addOnSuccessListener {
                 //get id of newly added doc
                 addMessage(it.id, message)
@@ -149,10 +149,34 @@ class NewConvoViewModel: ViewModel()   {
     private fun setLastMessage(message:String, chatId:String)   {
         convoRepository.setLastMessage(message, Timestamp.now(), chatId)
             .addOnSuccessListener {
-                newConvoStatus.value = DataLoading("MESSAGE_ADDED", chatId)
+                incrementNewMessageCount(chatId, getRecipientNames())
             }
             .addOnFailureListener {
                 newConvoStatus.value = DataLoading("ERROR", it.toString())
             }
+    }
+
+    private fun createNewMessageCount():HashMap<String, Int>    {
+        val countMap = HashMap<String, Int>()
+
+        for (recipient in recipientList) {
+            countMap[recipient.username] = 0
+        }
+        return countMap
+    }
+
+    private fun incrementNewMessageCount(chatId:String, usernames:ArrayList<String>)    {
+        convoRepository.incrementNewMessageCount(chatId, getRecipientNames())
+            .addOnSuccessListener {
+                newConvoStatus.value = DataLoading("MESSAGE_ADDED", chatId)
+            }
+    }
+
+    private fun getRecipientNames():ArrayList<String>   {
+        var recipientNames = ArrayList<String>()
+        for (recipient in recipientList)    {
+            recipientNames.add(recipient.username)
+        }
+        return recipientNames
     }
 }

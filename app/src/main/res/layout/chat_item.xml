@@ -22,6 +22,14 @@
             android:text="MEMBERS"
             android:layout_marginBottom="5dp" />
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/new_message_count"
+            android:text="COUNT"
+            android:textSize="12sp"
+            android:layout_marginRight="15dp"
+            android:textColor="@color/tw__composer_red"/>
+        <TextView
             android:id="@+id/date"
             android:text="DATE"
             android:textSize="12sp"
