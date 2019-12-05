@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
 import com.bm.android.chat.conversations.models.Chat
+import com.bm.android.chat.current_friends.FriendsViewModel
 import com.bm.android.chat.friend_requests.FriendRequestsViewModel
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import kotlinx.android.synthetic.main.fragment_convos.*
@@ -31,6 +32,7 @@ class ConvosFragment : Fragment() {
         fun onStartChatFragment()
         fun changeActionbarTitle(title:String)
         fun setNavDrawerItemCount(itemId:Int, newCount:Int?)
+        fun isFragmentVisible(tag:String):Boolean
     }
 
     private val mCallback by lazy {
@@ -44,6 +46,9 @@ class ConvosFragment : Fragment() {
     }
     private val friendRequestsViewModel by lazy {
         ViewModelProviders.of(activity!!).get(FriendRequestsViewModel::class.java)
+    }
+    private val friendsViewModel by lazy {
+        ViewModelProviders.of(activity!!).get(FriendsViewModel::class.java)
     }
     private lateinit var adapter: ConvosAdapter
     private val chatItemCallback = object: ConvosAdapter.ConvoAdapterInterface   {
@@ -61,23 +66,29 @@ class ConvosFragment : Fragment() {
                               savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
         val v = inflater.inflate(R.layout.fragment_convos, container, false)
+        mCallback.isFragmentVisible("RECEIVED_REQUESTS")
         mCallback.showNavDrawer()
         mCallback.setUsernameInNavDrawer()
         mCallback.changeActionbarTitle(getString(R.string.convos_title))
 
-        if (chatViewModel.newMessageListener == null
-            && chatViewModel.getCurrentUsername() != null)   {
-            Log.d("newMessageListener", "newMessageListener ${chatViewModel}  is being set")
-            chatViewModel.setNewMessageListener()
-            Log.d("newMessageListener", "listener = ${chatViewModel.newMessageListener}")
-        } else {
-            Log.d("newMessageListener", "newMessageListener is not being set")
-        }
+        if (chatViewModel.getCurrentUsername() != null) {
+            if (chatViewModel.newMessageListener == null)   {
+                Log.d("newMessageListener", "newMessageListener ${chatViewModel}  is being set")
+                chatViewModel.setNewMessageListener()
+                Log.d("newMessageListener", "listener = ${chatViewModel.newMessageListener}")
+            } else {
+                Log.d("newMessageListener", "newMessageListener is not being set")
+            }
 
-        if (friendRequestsViewModel.receivedRequestsListener == null &&
-                chatViewModel.getCurrentUsername() != null) {
-            friendRequestsViewModel.setReceivedRequestsListener()
-            Log.d("friendRequestsListener", "friendRequestsListener is being set")
+            if (friendRequestsViewModel.receivedRequestsListener == null) {
+                friendRequestsViewModel.setReceivedRequestsListener()
+                Log.d("friendRequestsListener", "friendRequestsListener is being set")
+            }
+
+            if (friendsViewModel.newFriendsCountListener == null)   {
+                friendsViewModel.setNewFriendsCountListener()
+                Log.d("friendsCountListener", "friendsCountListener is being set")
+            }
         }
 
         setHasOptionsMenu(true)
@@ -102,8 +113,8 @@ class ConvosFragment : Fragment() {
         adapter.startListening()
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         adapter.stopListening()
     }
 

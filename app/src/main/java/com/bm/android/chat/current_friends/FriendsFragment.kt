@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SortedList
 import kotlinx.coroutines.Runnable
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.conversation.ChatViewModel
@@ -88,6 +89,13 @@ class FriendsFragment : Fragment() {
     private var adapter:FriendsListAdapter? = null
     private var newFriendListener:ListenerRegistration? = null
     private lateinit var friendsList:RecyclerView
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mViewModel.friendsFragmentIsVisible = true
+        Log.d("friendsCountListener", " in onViewCreated FRIENDS FRAGMENT IS VISIBLE: ${mViewModel.friendsFragmentIsVisible}")
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
         super.onCreateView(inflater, container, savedInstanceState)
@@ -97,36 +105,67 @@ class FriendsFragment : Fragment() {
         friendsList = v.findViewById(R.id.friends_list)
         mViewModel.getFriends()
 
+        mViewModel.clearNewFriendsCount()
+
         mViewModel.getFriendLoadingStatus().observe(this, Observer {
             val result = it
             if (result != null) {
                 mViewModel.clearFriendLoadingStatus()
                 if (result.status == "LOADED") {
+                    Log.d("friendsDebug", "IN LOADED FOR INITIAL: payload == ${it.payload!!}")
                     friendsList.layoutManager = LinearLayoutManager(activity!!)
                     adapter = FriendsListAdapter(it.payload!!, friendsListAdapterCallback,
                         friendClickCallback)
                     friendsList.adapter = adapter
+                    setNewFriendListener()
                 } else  {
                     Toast.makeText(activity, it.status, Toast.LENGTH_LONG).show()
                 }
             }
         })
 
+
+        return v
+    }
+
+    private fun setNewFriendListener() {
         newFriendListener = mViewModel.listenForFriendChanges()
         mViewModel.getNewFriendStatus().observe(this, Observer {
             val result = it
             if (result != null) {
                 mViewModel.clearNewFriendStatus()
-                adapter?.dataset?.add(result)
-                adapter?.notifyDataSetChanged()
+                Log.d("friendsDebug", " New Friend: Attempting to add ${result.getDisplayTitle()}, contains that name =  ${containsName(adapter?.dataset, result.getDisplayTitle())}")
+                if (adapter != null && !containsName(adapter?.dataset, result.getDisplayTitle())) {
+                    Log.d("friendsDebug", "does not contain name,  adding ${result.getDisplayTitle()}")
+                    adapter?.dataset?.add(result)
+                    adapter?.notifyDataSetChanged()
+                }
             }
         })
-        return v
     }
-
     override fun onDestroy() {
         super.onDestroy()
         mViewModel.firstLetterCountMap.clear()
         newFriendListener?.remove()
+        mViewModel.friendsFragmentIsVisible = false
+        Log.d("friendsCountListener", " in onDestroy FRIENDS FRAGMENT IS VISIBLE: ${mViewModel.friendsFragmentIsVisible}")
     }
+
+    private fun containsName(list:SortedList<FriendsListItem>?, name:String):Boolean {
+        var containsName = false
+        var i = 0
+
+        if (list != null)   {
+            while (i < list.size() && !containsName) {
+                Log.d("friendsDebug", "${list[i].getDisplayTitle()} and $name")
+
+                if (list[i].getDisplayTitle() == name)  {
+                    containsName = true
+                }
+                i++
+            }
+        }
+        return containsName
+    }
+
 }

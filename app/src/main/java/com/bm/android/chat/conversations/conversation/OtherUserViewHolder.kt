@@ -5,20 +5,20 @@ import android.widget.TextView
 import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.ChatMessage
 
-class OtherUserViewHolder(itemView: View, val sameSenderAsLast:Boolean)
+class OtherUserViewHolder(itemView: View, private val sameSenderAsLast:Boolean)
     : MessageViewHolder(itemView) {
-    private val messageView = itemView.findViewById<TextView>(R.id.message)
-    private val senderText = itemView.findViewById<TextView>(R.id.sender)
-    private val dateText = itemView.findViewById<TextView>(R.id.date)
+//    private val messageView = itemView.findViewById<TextView>(R.id.message)
+    private val senderTextView = itemView.findViewById<TextView>(R.id.sender)
+//    private val dateTextView = itemView.findViewById<TextView>(R.id.date)
 
-    override fun bindData(model: ChatMessage) {
+    fun bindData(model: ChatMessage) {
         messageView.text = model.message
         if (sameSenderAsLast) {
-            senderText.visibility = View.GONE
+            senderTextView.visibility = View.GONE
         } else {
-            senderText.text = model.sentBy
+            senderTextView.text = model.sentBy
         }
 
-        dateText.text = getDateString(model.timeSent.toDate())
+        setDate(model)
     }
 }

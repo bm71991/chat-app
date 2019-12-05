@@ -13,11 +13,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestoreException
 
 
-class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
+class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>,
+                      private val currentUserCallback: ChatFragment.CurrentUserMessageCallback)
     : FirestoreRecyclerAdapter<ChatMessage, MessageViewHolder>(options) {
     private val TAG = "adapterLog"
     private val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
-    private var lastSender = ""
+
     private var sameSenderAsLast = false
 
     override fun getItemViewType(position: Int): Int {
@@ -25,8 +26,12 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
         return if (currentSender == currentUsername)   {
             CURRENT_USER
         } else {
-            sameSenderAsLast = (currentSender == lastSender)
-            lastSender = currentSender
+            sameSenderAsLast = if (position != 0)   {
+               val lastSender = snapshots[position - 1].sentBy
+               currentSender == lastSender
+           } else {
+               false
+           }
             OTHER_USER
         }
     }
@@ -44,7 +49,12 @@ class ChatListAdapter(options:FirestoreRecyclerOptions<ChatMessage>)
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int,
                                   model: ChatMessage) {
-        holder.bindData(model)
+        if (getItemViewType(position) == CURRENT_USER)  {
+            val messageId = snapshots.getSnapshot(position).id
+            (holder as CurrentUserViewHolder).bindData(model, currentUserCallback, messageId)
+        } else {
+            (holder as OtherUserViewHolder).bindData(model)
+        }
     }
 
     override fun onError(e: FirebaseFirestoreException) {

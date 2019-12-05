@@ -18,12 +18,15 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.ViewModelStore
 import com.bm.android.chat.conversations.conversation.ChatFragment
 import com.bm.android.chat.conversations.conversation.ChatViewModel
+import com.bm.android.chat.conversations.conversation.MessageChangeDialog
 import com.bm.android.chat.conversations.convo_list.ConvosFragment
 import com.bm.android.chat.conversations.convo_list.ConvosViewModel
 import com.bm.android.chat.conversations.new_conversation.NewConvoFragment
 import com.bm.android.chat.conversations.new_conversation.RecipientDialog
 import com.bm.android.chat.current_friends.FriendsFragment
+import com.bm.android.chat.current_friends.FriendsViewModel
 import com.bm.android.chat.friend_requests.FriendRequestsViewModel
+import com.bm.android.chat.friend_requests.ReceivedRequestsFragment
 import com.bm.android.chat.friend_requests.RequestsPagerFragment
 import com.bm.android.chat.friend_search.FriendSearchFragment
 import com.bm.android.chat.user_access.fragments.*
@@ -39,18 +42,19 @@ import kotlinx.android.synthetic.main.fragment_container.*
 
 
 class ChatActivity : AppCompatActivity(),
-                     NavigationView.OnNavigationItemSelectedListener,
-                     LoginFragment.LoginFragmentInterface,
-                     EmailSignupFragment.EmailSignupFragmentInterface,
-                     UsernameFragment.UsernameFragmentInterface,
-                     UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
-                     EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
-                     ConvosFragment.ConvosFragmentInterface,
-                     NewConvoFragment.NewConvoFragmentInterface,
-                     ChatFragment.ChatFragmentInterface,
-                     RequestsPagerFragment.RequestsPagerInterface,
-                     FriendSearchFragment.FriendSearchInterface,
-                     FriendsFragment.FriendsInterface   {
+    NavigationView.OnNavigationItemSelectedListener,
+    LoginFragment.LoginFragmentInterface,
+    EmailSignupFragment.EmailSignupFragmentInterface,
+    UsernameFragment.UsernameFragmentInterface,
+    UsernameRegisteredFragment.UsernameRegisteredFragmentInterface,
+    EmailSignupSuccessFragment.EmailSignupSuccessFragmentInterface,
+    ConvosFragment.ConvosFragmentInterface,
+    NewConvoFragment.NewConvoFragmentInterface,
+    ChatFragment.ChatFragmentInterface,
+    RequestsPagerFragment.RequestsPagerInterface,
+    FriendSearchFragment.FriendSearchInterface,
+    FriendsFragment.FriendsInterface,
+    ReceivedRequestsFragment.ReceivedRequestsFragmentInterface {
     private val TAG = "mainLog"
     private val fm: FragmentManager by lazy {
         supportFragmentManager
@@ -61,6 +65,9 @@ class ChatActivity : AppCompatActivity(),
     }
     private val friendRequestsViewModel by lazy {
         ViewModelProviders.of(this).get(FriendRequestsViewModel::class.java)
+    }
+    private val friendsViewModel by lazy {
+        ViewModelProviders.of(this).get(FriendsViewModel::class.java)
     }
     private lateinit var badgeDrawable:BadgeDrawerArrowDrawable
     private lateinit var mTwitterAuthConfig: TwitterAuthConfig
@@ -81,6 +88,7 @@ class ChatActivity : AppCompatActivity(),
         val currentUser = mAuth.currentUser
         setNewChatMessageObserver()
         setNewReceivedRequestsObserver()
+        setNewFriendsCountObserver()
 
 
         if (currentUser != null)  {
@@ -94,13 +102,26 @@ class ChatActivity : AppCompatActivity(),
         }
     }
 
+    private fun setNewFriendsCountObserver() {
+        friendsViewModel.getNewFriendsCountStatus().observe(this, Observer {
+            val result = it
+            if (result != null) {
+                friendsViewModel.clearNewFriendsCountStatus()
+                if (result.status == "NEW FRIENDS COUNT") {
+                    setNavDrawerItemCount(R.id.current_friends, result.payload)
+                    setTotalNewMessages()
+                }
+            }
+        })
+    }
+
     private fun setNewReceivedRequestsObserver()    {
         friendRequestsViewModel.getNewRequestCountStatus().observe(this, Observer {
             val result = it
             if (result != null) {
                 friendRequestsViewModel.clearNewRequestCountStatus()
                 if (result.status == "NEW REQUEST COUNT") {
-                   setNavDrawerItemCount(R.id.friend_requests, result.payload)
+                    setNavDrawerItemCount(R.id.friend_requests, result.payload)
                     setTotalNewMessages()
                 }
             }
@@ -269,10 +290,24 @@ class ChatActivity : AppCompatActivity(),
         supportActionBar?.title = title
     }
 
+    /*Used in ChatFragment*/
+    override fun toMessageChangeDialog() {
+        val chatFragment = fm.findFragmentById(R.id.fragment_container)
+        val messageChangeDialog = MessageChangeDialog()
+        messageChangeDialog.setTargetFragment(chatFragment, 1)
+        messageChangeDialog.show(fm, "MessageChangeDialog")
+    }
+
 
     /*Used in Navigation Drawer*/
     private fun onStartRequestsPagerFragment()    {
-        replaceFragment(RequestsPagerFragment())
+        replaceFragmentWithTag(ReceivedRequestsFragment(), "RECEIVED_REQUESTS")
+    }
+
+    override fun isFragmentVisible(tag:String):Boolean {
+        val fragment = fm.findFragmentById(R.id.fragment_container)
+        Log.d("fragmentTest","fragment = RECEIVED_REQUESTS ${fragment?.tag == tag}")
+        return (fragment?.tag == tag)
     }
 
     private fun onStartLoginFragment()  {
@@ -292,7 +327,7 @@ class ChatActivity : AppCompatActivity(),
         /*******************************************************
          * pop fragment transaction stack if it is not empty, else
          * finish the activity.
-        */
+         */
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         } else {
@@ -341,7 +376,8 @@ class ChatActivity : AppCompatActivity(),
 
     private fun setTotalNewMessages()  {
         val newCount = chatViewModel.newChatMessageCountTotal +
-                friendRequestsViewModel.newRequestCount
+                       friendRequestsViewModel.newRequestCount +
+                       friendsViewModel.newFriendsCount
         if (newCount < 1) {
             badgeDrawable.isEnabled = false
         } else {
@@ -373,6 +409,7 @@ class ChatActivity : AppCompatActivity(),
 
                 chatViewModel.clearNewMessageListenerAndCount()
                 friendRequestsViewModel.clearReceivedRequestsListenerAndCount()
+                friendsViewModel.clearNewFriendsCountListener()
                 ViewModelStore().clear()
                 onStartLoginFragment()
             }
@@ -385,7 +422,7 @@ class ChatActivity : AppCompatActivity(),
      */
     private fun enableNavDrawer(enabled:Boolean)   {
         val mode = if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED
-            else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+        else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
         drawer_layout.setDrawerLockMode(mode)
         toggle.setDrawerIndicatorEnabled(enabled)
     }

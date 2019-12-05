@@ -1,19 +1,24 @@
 package com.bm.android.chat.friend_requests
 
+import android.app.Application
 import android.provider.ContactsContract
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.bm.android.chat.conversations.models.DataLoading
 import com.bm.android.chat.user_access.models.FriendInfo
+import com.facebook.FacebookSdk.getApplicationContext
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
 class FriendRequestsViewModel:ViewModel()   {
+
     private val TAG = "mainLog"
     private val friendRequestsRepo = FriendRequestsRepository()
+    var receivedRequestsIsVisible = false
     var newRequestCount = 0
     var receivedRequestsListener:ListenerRegistration? = null
     private val newRequestCountStatus = MutableLiveData<DataLoading<Int>>()
@@ -61,16 +66,23 @@ class FriendRequestsViewModel:ViewModel()   {
             }
     }
 
-    fun setReceivedRequestsListener():ListenerRegistration? {
+    fun setReceivedRequestsListener():ListenerRegistration?  {
         val currentUid = FirebaseAuth.getInstance().uid
         if (currentUid == null) return null
 
         receivedRequestsListener = friendRequestsRepo.getFriendsDocument(currentUid)
-            .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            .addSnapshotListener { documentSnapshot, _ ->
                 if (documentSnapshot != null)   {
                     val friendObject = documentSnapshot.toObject(FriendInfo::class.java)
-                    newRequestCount = friendObject!!.newRequestCount
-                    newRequestCountStatus.value = DataLoading("NEW REQUEST COUNT", newRequestCount)
+                    newRequestCount = friendObject?.newRequestCount ?: 0
+                    Log.d("friendsCountListener", "in receivedRequestslistener: IS VISIBLE = ${receivedRequestsIsVisible}")
+                    if (receivedRequestsIsVisible && newRequestCount > 0)   {
+                        Log.d("friendsCountListener", "is receivedrequestlistenervisible: CLEARING FRIEND REQUEST COUNT")
+                        friendRequestsRepo.clearReceivedFriendRequestCount()
+                    } else {
+                        Log.d("friendsCountListener", "is received requestslistenervisble == $receivedRequestsIsVisible: new Request count = $newRequestCount")
+                        newRequestCountStatus.value = DataLoading("NEW REQUEST COUNT", newRequestCount)
+                    }
                 }
             }
         return receivedRequestsListener
@@ -97,6 +109,8 @@ class FriendRequestsViewModel:ViewModel()   {
                 friendRequestsRepo.deleteSentRequest(senderId, document.id)
                     .addOnSuccessListener {
                         Log.d(TAG, "deleted sent request document")
+                        //increment newFriendCount
+                        friendRequestsRepo.incrementNewFriendCount(senderId)
                     }
             }
         }

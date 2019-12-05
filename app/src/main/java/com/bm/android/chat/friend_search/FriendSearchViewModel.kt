@@ -141,10 +141,12 @@ class FriendSearchViewModel : ViewModel() {
             Timestamp(java.util.Date()))
         friendSearchRepo.updateReceivedFriendRequests(queriedUserId, receivedFriendRequest)
             .addOnSuccessListener {
+                Log.d("friendsListener", "update was successful queriedUserId = $queriedUserId")
                 sendFriendRequestStatus.value = REQUEST_SENT
             }
             .addOnFailureListener {
                 sendFriendRequestStatus.value = it.toString()
+                Log.d("friendsListener", "ERROR $it")
             }
     }
 

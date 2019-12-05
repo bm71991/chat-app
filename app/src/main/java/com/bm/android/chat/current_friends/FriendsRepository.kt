@@ -22,4 +22,6 @@ class FriendsRepository {
         query = query.whereEqualTo("memberCount", members.size)
         return query.get()
     }
+
+
 }

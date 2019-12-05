@@ -25,6 +25,10 @@ class ChatViewModel: ViewModel() {
     var newChatMessageCountTotal = 0
     private val newChatMessageCountStatus = MutableLiveData<DataLoading<Int>>()
 
+    /*Used in MessageChangeDialog*/
+    var messageToChangeText = ""
+    var messageToChangeId = ""
+
     fun getNewChatMessageCountStatus():LiveData<DataLoading<Int>> = newChatMessageCountStatus
     fun clearNewChatMessageCountStatus()    {
         newChatMessageCountStatus.value = null
@@ -61,18 +65,18 @@ class ChatViewModel: ViewModel() {
     }
 
     fun addChatMessage(message:String)   {
-            convoRepository.addMessage(chatId, message,
-                FirebaseAuth.getInstance().currentUser!!.displayName!!)
-                .addOnSuccessListener {
-                    setLastMessage(message, chatId)
-                }
-                .addOnFailureListener {
-                    Log.d("chatTest", "error: $it")
-                }
+        convoRepository.addMessage(chatId, message,
+            FirebaseAuth.getInstance().currentUser!!.displayName!!)
+            .addOnSuccessListener {
+                setLastMessage(message, chatId, it.id)
+            }
+            .addOnFailureListener {
+                Log.d("chatTest", "error: $it")
+            }
     }
 
-    private fun setLastMessage(message:String, chatId:String)   {
-        convoRepository.setLastMessage(message, Timestamp.now(), chatId)
+    private fun setLastMessage(message:String, chatId:String, messageId:String)   {
+        convoRepository.setLastMessage(message, Timestamp.now(), chatId, messageId)
             .addOnSuccessListener {
                 convoRepository.incrementNewMessageCount(chatId, getMemberNameArray())
             }
@@ -81,10 +85,10 @@ class ChatViewModel: ViewModel() {
     fun addChat(message:String)   {
         convoRepository.addChat(getMemberNameArray(), createNewMessageCountMap())
             .addOnSuccessListener {
-            chatId = it.id
-            addChatMessage(message)
-            getChatInfo()
-        }
+                chatId = it.id
+                addChatMessage(message)
+                getChatInfo()
+            }
     }
 
     private fun createNewMessageCountMap():HashMap<String, Int>    {
@@ -111,11 +115,12 @@ class ChatViewModel: ViewModel() {
             Log.d("listenerTest", "member: $member")
         }
         return convoRepository.getChatQuery(getMemberNameArray())
-            .addSnapshotListener { querySnapshot, firebaseFirestoreException ->
-                if (querySnapshot!!.documentChanges.isNotEmpty()) {
+            .addSnapshotListener { querySnapshot, _ ->
+                if (querySnapshot != null && querySnapshot.documentChanges.isNotEmpty()) {
                     for(documentChange in querySnapshot.documentChanges)    {
                         when (documentChange.type)  {
                             DocumentChange.Type.ADDED ->    {
+                                Log.d("newMessageListener", "in New ChatListener chatId is being set")
                                 val newChatId = documentChange.document.id
                                 chatId = newChatId
                                 getChatInfo()
@@ -142,7 +147,7 @@ class ChatViewModel: ViewModel() {
                         var doc = documentChange.document
                         var chatObject = doc.toObject(Chat::class.java)
                         var newCountValue = chatObject.newMessageCount[currentUser]
-                        var chatId = doc.id
+                        var docChatId = doc.id
 
                         when (documentChange.type)  {
                             DocumentChange.Type.ADDED ->    {
@@ -150,17 +155,21 @@ class ChatViewModel: ViewModel() {
                                     //add the message count to the previous number of new messages
                                     newChatMessageCountTotal += newCountValue
                                     newChatMessageCountStatus.value = DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
-                                    newChatMessageCountMap[chatId] = newCountValue
+                                    newChatMessageCountMap[docChatId] = newCountValue
                                     Log.d("newMessageListener", "ADDED: total new message count = $newChatMessageCountTotal")
                                 }
                             }
                             DocumentChange.Type.MODIFIED -> {
-                                var previousCountValue = newChatMessageCountMap[chatId]
+                                var previousCountValue = newChatMessageCountMap[docChatId]
                                 if (newCountValue != null && previousCountValue != null)    {
                                     if (previousCountValue > newCountValue)  {
                                         val difference = previousCountValue - newCountValue
                                         newChatMessageCountTotal -= difference
-                                        Log.d("newMessageListener", "MODIFIED: DECREASED total new message count = $newChatMessageCountTotal")
+                                        Log.d("newMessageListener", "MODIFIED: DECREASED total new message count = $newChatMessageCountTotal" +
+                                                "previous = $previousCountValue new = $newCountValue")
+                                        newChatMessageCountStatus.value =
+                                            DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
+                                        newChatMessageCountMap[docChatId] = newCountValue
                                     }
                                     /*ignore when previousCountValue == newCountValue
                                       if messageCount has increased subtract the difference and add to
@@ -169,23 +178,34 @@ class ChatViewModel: ViewModel() {
                                     if (previousCountValue < newCountValue) {
                                         val difference = newCountValue - previousCountValue
                                         newChatMessageCountTotal += difference
-                                        Log.d("newMessageListener", "MODIFIED: INCREASED total new message count = $newChatMessageCountTotal")
-                                    }
-
-                                    if (previousCountValue != newCountValue) {
-                                        Log.d("newMessageListener", "previous Count != newCount $newChatMessageCountTotal")
-                                        newChatMessageCountStatus.value =
-                                            DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
-                                        newChatMessageCountMap[chatId] = newCountValue
+                                        newChatMessageCountMap[docChatId] = newCountValue
+                                        if (docChatId != chatId)    {
+                                            Log.d("newMessageListener", "MODIFIED: previous = $previousCountValue new = $newCountValue" +
+                                                    "INCREASED total new message count = $newChatMessageCountTotal")
+                                            newChatMessageCountStatus.value =
+                                                DataLoading("NEW_CHAT_MESSAGE_COUNT", newChatMessageCountTotal)
+                                            //if the user is already looking at the chat when the message is added:
+                                        } else {
+                                            Log.d("newMessageListener", "chatId equals new docChat, previous = $previousCountValue " +
+                                                    "new = $newCountValue")
+                                            convoRepository.changeNewMessageCount(chatId, currentUser, previousCountValue)
+                                        }
                                     }
                                 }
                             }
                         }
-                        Log.d("newMessageListener", "END: $chatId now = ${newChatMessageCountMap[chatId]}")
                     }
                 }
             }
         return newMessageListener
+    }
+
+    fun updateMessage(updatedMessageId:String, newMessage:String)  {
+        convoRepository.updateMessage(updatedMessageId, newMessage, chatId)
+            .addOnCompleteListener {
+                convoRepository.updateMostRecentMessage(newMessage, chatId)
+            }
+
     }
 
     fun clearNewMessageListenerAndCount()  {

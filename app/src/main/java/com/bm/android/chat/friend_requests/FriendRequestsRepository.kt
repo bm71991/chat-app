@@ -11,19 +11,19 @@ class FriendRequestsRepository  {
     private val db = FirebaseFirestore.getInstance()
 
     fun receivedRequests() = db.collection(DbConstants.FRIENDS_COLLECTION)
-                            .document(FirebaseAuth.getInstance().uid!!)
-                            .collection(DbConstants.RECEIVED_REQUESTS)
+        .document(FirebaseAuth.getInstance().uid!!)
+        .collection(DbConstants.RECEIVED_REQUESTS)
 
     fun getReceivedFriendRequest(senderId: String):Task<QuerySnapshot> {
         return receivedRequests()
-               .whereEqualTo("senderUid", senderId)
-               .get()
+            .whereEqualTo("senderUid", senderId)
+            .get()
     }
 
     fun getSentFriendRequestCollection(senderId: String): CollectionReference {
         return db.collection(DbConstants.FRIENDS_COLLECTION)
-                .document(senderId)
-                .collection(DbConstants.SENT_REQUESTS)
+            .document(senderId)
+            .collection(DbConstants.SENT_REQUESTS)
     }
 
     fun getSentFriendRequest(senderId: String):Task<QuerySnapshot>  {
@@ -51,14 +51,26 @@ class FriendRequestsRepository  {
     }
 
     /*********************************************************
-     userId = id of user for whom the friend will be added
-     friendId = id of new friend
-     friendUsername = username of new friend
+    userId = id of user for whom the friend will be added
+    friendId = id of new friend
+    friendUsername = username of new friend
      */
     fun addFriend(userId:String, friendId:String, friendUsername:String):Task<DocumentReference>   {
         return db.collection(DbConstants.FRIENDS_COLLECTION)
             .document(userId)
             .collection(DbConstants.CURRENT_FRIENDS)
             .add(Friend(friendId, friendUsername))
+    }
+
+    fun incrementNewFriendCount(friendId:String):Task<Void>    {
+        return db.collection(DbConstants.FRIENDS_COLLECTION)
+            .document(friendId)
+            .update("newFriendCount", FieldValue.increment(1))
+    }
+
+    fun clearNewFriendsCount(friendId:String):Task<Void> {
+        return db.collection(DbConstants.FRIENDS_COLLECTION)
+            .document(friendId)
+            .update("newFriendCount", 0)
     }
 }

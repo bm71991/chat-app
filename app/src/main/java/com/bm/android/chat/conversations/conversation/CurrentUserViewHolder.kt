@@ -1,17 +1,23 @@
 package com.bm.android.chat.conversations.conversation
 
 import android.view.View
-import android.widget.TextView
-import com.bm.android.chat.R
 import com.bm.android.chat.conversations.models.ChatMessage
-
 
 class CurrentUserViewHolder(itemView: View)
     : MessageViewHolder(itemView) {
-    private val messageView = itemView.findViewById<TextView>(R.id.message)
-    private val dateView = itemView.findViewById<TextView>(R.id.date)
-    override fun bindData(model: ChatMessage) {
+//    private val messageView = itemView.findViewById<TextView>(R.id.message)
+//    private val dateTextView = itemView.findViewById<TextView>(R.id.date)
+
+    fun bindData(model: ChatMessage,
+                        currentUserMessageCallback: ChatFragment.CurrentUserMessageCallback,
+                        messageId:String) {
         messageView.text = model.message
-        dateView.text = getDateString(model.timeSent.toDate())
+
+        setDate(model)
+
+        itemView.setOnLongClickListener{
+            currentUserMessageCallback.changeMessage(messageView.text as String, messageId)
+            true
+        }
     }
 }

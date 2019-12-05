@@ -139,15 +139,15 @@ class NewConvoViewModel: ViewModel()   {
         mConvoRepository.addMessage(chatId, message,
             FirebaseAuth.getInstance().currentUser!!.displayName!!)
             .addOnSuccessListener {
-                setLastMessage(message, chatId)
+                setLastMessage(message, chatId, it.id)
             }
             .addOnFailureListener {
                 newConvoStatus.value = DataLoading("ERROR", it.toString())
             }
     }
 
-    private fun setLastMessage(message:String, chatId:String)   {
-        convoRepository.setLastMessage(message, Timestamp.now(), chatId)
+    private fun setLastMessage(message:String, chatId:String, messageId:String)   {
+        convoRepository.setLastMessage(message, Timestamp.now(), chatId, messageId)
             .addOnSuccessListener {
                 incrementNewMessageCount(chatId, getRecipientNames())
             }

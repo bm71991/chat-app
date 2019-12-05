@@ -19,8 +19,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 
 class ReceivedRequestsFragment : Fragment() {
+    interface ReceivedRequestsFragmentInterface {
+        fun isFragmentVisible(tag:String):Boolean
+    }
     private val mViewModel by lazy {
         ViewModelProviders.of(activity!!).get(FriendRequestsViewModel::class.java)
+    }
+    private val mCallback by lazy {
+        context as ReceivedRequestsFragmentInterface
     }
     private val TAG = "mainLog"
     private var adapter: FirestoreRecyclerAdapter<*, *>? = null
@@ -31,8 +37,17 @@ class ReceivedRequestsFragment : Fragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if (this.isVisible)
+            mViewModel.receivedRequestsIsVisible = true
+
+        Log.d("friendsListener", "ON VIEW CREATED receivedRequestsIsVisible = ${mViewModel.receivedRequestsIsVisible}")
+    }
+
     override fun onCreateView(inflater: LayoutInflater, parent: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
+
         val v = inflater.inflate(R.layout.fragment_received_requests, parent, false)
         val query = mViewModel.getReceivedRequests()
 
@@ -80,5 +95,11 @@ class ReceivedRequestsFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         adapter?.stopListening()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mViewModel.receivedRequestsIsVisible = false
+        Log.d("friendsListener", " ON DESTROY: receivedRequestsIsVisible = ${mViewModel.receivedRequestsIsVisible}")
     }
 }

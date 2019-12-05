@@ -31,6 +31,20 @@ class ChatFragment: Fragment() {
 
     interface ChatFragmentInterface {
         fun changeActionbarTitle(title:String)
+        fun toMessageChangeDialog()
+    }
+
+    interface CurrentUserMessageCallback   {
+        //navigate to MessageChangeDialog - passed to CurrentUserViewHolder in ChatListAdapter
+        fun changeMessage(messageToChangeText:String, messageId:String)
+    }
+
+    private val currentUserMessageCallback = object : CurrentUserMessageCallback    {
+        override fun changeMessage(messageToChangeText:String, messageId:String) {
+            chatViewModel.messageToChangeText = messageToChangeText
+            chatViewModel.messageToChangeId = messageId
+            mCallback.toMessageChangeDialog()
+        }
     }
     private lateinit var fragmentRootView:LinearLayout
 
@@ -116,7 +130,7 @@ class ChatFragment: Fragment() {
             .setQuery(query, ChatMessage::class.java)
             .build()
         changeActionbarTitle(chatViewModel.getMemberNameArray())
-        adapter = ChatListAdapter(options)
+        adapter = ChatListAdapter(options, currentUserMessageCallback)
         adapter?.startListening()
         adapter?.notifyDataSetChanged()
         chatList.adapter = adapter

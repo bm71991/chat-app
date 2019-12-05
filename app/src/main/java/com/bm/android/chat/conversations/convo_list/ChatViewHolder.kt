@@ -1,5 +1,6 @@
 package com.bm.android.chat.conversations.convo_list
 
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -42,13 +43,16 @@ class ChatViewHolder(itemView:View, private val chatItemCallback:
         lastMessage.text = chat.lastMessage.message
         setNewMessageCount(chat.newMessageCount[currentUser])
 
-        //abstract
         lastMessageListener = FirebaseFirestore.getInstance()
             .collection("chats")
             .document(chatId)
             .addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
                 val chatObject = documentSnapshot?.toObject(Chat::class.java)
-                lastMessage.text = chatObject?.lastMessage?.message
+                if (chatObject != null) {
+                    Log.d("snapshotTest", "SNAPSHOT FIRED: ${chatObject.lastMessage}")
+                    lastMessage.text = chatObject.lastMessage.message
+                    dateView.text = getDateString(chatObject.lastMessage.timeSent.toDate())
+                }
                 setNewMessageCount(chatObject?.newMessageCount?.get(currentUser))
             }
 

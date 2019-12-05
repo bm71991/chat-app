@@ -7,4 +7,6 @@ import java.util.Date
  * Model of document to be included in subcollection Chat.chatThread
  */
 data class ChatMessage(var message:String = "", var sentBy:String = "",
-                       var timeSent:Timestamp = Timestamp(Date()))
+                       var timeSent:Timestamp = Timestamp(Date()),
+                       var updated:Boolean = false,
+                       var updateTime:Timestamp? = null)

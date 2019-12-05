@@ -104,13 +104,13 @@ class ConvoRepository {
 
     /***************************************************
      * Get all chat documents for which the current user
-     * is a member EDITED
+     * is a member
      */
     fun getChats():Query  {
         val currentUsername = FirebaseAuth.getInstance().currentUser?.displayName
         return chatCollection
             .whereEqualTo("members.${currentUsername}", true)
-            .orderBy("lastMessage.timeSent", Query.Direction.DESCENDING)
+//            .orderBy("lastMessage.timeSent", Query.Direction.DESCENDING)
     }
 
     /********************************************
@@ -118,10 +118,12 @@ class ConvoRepository {
      * object. Used in ConvosFragment to set
      * the last message of a chat item
      */
-    fun setLastMessage(message:String, timeSent:Timestamp, chatId:String):Task<Void>  {
+    fun setLastMessage(message:String, timeSent:Timestamp, chatId:String, messageId:String):Task<Void>  {
         return chatCollection
             .document(chatId)
-            .update("lastMessage", hashMapOf("message" to message, "timeSent" to timeSent))
+            .update("lastMessage", hashMapOf("message" to message,
+                                        "timeSent" to timeSent,
+                                         "id" to messageId))
     }
 
     fun createNewMessageCount(chatId:String, messageCountMap:HashMap<String, Int>):Task<Void>   {
@@ -149,10 +151,33 @@ class ConvoRepository {
             .update("newMessageCount.$username", 0)
     }
 
-    //EDIT
+    fun changeNewMessageCount(chatId:String, username:String, amount:Int):Task<Void>   {
+        return db.collection(DbConstants.CHATS_COLLECTION)
+            .document(chatId)
+            .update("newMessageCount.$username", amount)
+    }
+
     fun getNewMessageCount():Query {
         val currentUsername = FirebaseAuth.getInstance().currentUser!!.displayName!!
         return db.collection(("newMessageCount"))
             .whereEqualTo("username", currentUsername)
+    }
+
+    fun updateMessage(messageId:String, newMessage:String, chatId:String):Task<Void>  {
+        return db.collection(DbConstants.CHATS_COLLECTION)
+            .document(chatId)
+            .collection("messages")
+            .document(messageId)
+            .update(mapOf(
+                "message" to newMessage,
+                "updated" to true,
+                "updateTime" to Timestamp.now()
+            ))
+    }
+
+    fun updateMostRecentMessage(newMessage:String, chatId:String):Task<Void>    {
+        return chatCollection
+            .document(chatId)
+            .update("lastMessage.message", newMessage)
     }
 }
